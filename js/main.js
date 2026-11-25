@@ -139,6 +139,7 @@
 
   /* ---------------- Modals ---------------- */
   let lastFocus = null;
+  let returnTo = null; // modal to go back to when the current one is closed
 
   function openModal(modal) {
     $$(".modal").forEach((m) => { if (m !== modal) m.hidden = true; });
@@ -149,7 +150,17 @@
     if (first) setTimeout(() => first.focus(), 30);
   }
 
-  function closeModals() {
+  function closeModals(all) {
+    if (returnTo && !all) {
+      // Enquiry was opened from a puja's details: go back to the details
+      const back = returnTo;
+      returnTo = null;
+      $$(".modal").forEach((m) => (m.hidden = m !== back));
+      const btn = back.querySelector("#detailsEnquire");
+      if (btn) setTimeout(() => btn.focus({ preventScroll: true }), 30);
+      return;
+    }
+    returnTo = null;
     $$(".modal").forEach((m) => (m.hidden = true));
     document.body.classList.remove("no-scroll");
     if (lastFocus && lastFocus.focus) lastFocus.focus();
@@ -166,9 +177,14 @@
     $("#detailsDuration").textContent = p.duration;
     $("#detailsIdeal").textContent = p.idealFor;
     $("#detailsBenefits").innerHTML = p.benefits.map((b) => `<li>${icon("check")}${esc(b)}</li>`).join("");
-    $("#detailsEnquire").onclick = () => openEnquiry(p.id);
+    $("#detailsEnquire").onclick = () => {
+      returnTo = $("#detailsModal");
+      openEnquiry(p.id);
+    };
     $("#detailsWhatsapp").href = waLink(`Namaste, I would like to enquire about ${p.name}.`);
+    returnTo = null;
     openModal($("#detailsModal"));
+    $("#detailsModal .modal-panel").scrollTop = 0;
   }
 
   function openEnquiry(pujaId) {
@@ -233,7 +249,7 @@
       const close = e.target.closest("[data-close]");
       if (details) { e.preventDefault(); openDetails(details.dataset.details); }
       else if (enquire) { e.preventDefault(); openEnquiry(enquire.dataset.enquire); closeMenu(); }
-      else if (close) { closeModals(); }
+      else if (close) { closeModals(close.hasAttribute("data-close-all")); }
     });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModals(); closeMenu(); } });
   }
