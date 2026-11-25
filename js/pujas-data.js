@@ -20,11 +20,11 @@ window.AGNI_DATA = {
   site: {
     name: "Agni Puja",
     tagline: "Online Puja Services",
-    phoneDisplay: "+91 98765 43210",
-    phoneLink: "+919876543210",
-    whatsapp: "919876543210", // country code + number, no "+" or spaces
-    email: "contact@agnipuja.in",
-    address: "Mylapore, Chennai, Tamil Nadu 600004",
+    phoneDisplay: "+91 98410 58644",
+    phoneLink: "+919841058644",
+    whatsapp: "919841058644", // country code + number, no "+" or spaces
+    email: "muralisastry2011@gmail.com",
+    address: "Periyar Nagar, Chennai, Tamil Nadu",
     hours: "Every day, 6:00 AM – 9:00 PM",
     social: {
       facebook: "https://facebook.com/",
