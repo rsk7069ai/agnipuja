@@ -50,7 +50,7 @@
         ${S.mode === "online" && S.step >= 3 ? `<li>${icon("globe")}<span>${esc(country().name)}</span></li>` : ""}
       </ul>
       ${q ? `<table class="price-table">${q.lines.map((l) => `<tr><td>${esc(l.label)}${l.note ? `<small>${esc(l.note)}</small>` : ""}</td><td>${money(l.amount)}</td></tr>`).join("")}
-        <tr class="total"><td>Total</td><td>${money(q.total)}</td></tr></table>
+        <tr class="total"><td>Estimated total</td><td>${money(q.total)}</td></tr></table>
         ${country().code !== "IN" ? `<p class="price-approx">${U.approx(q.total, country().code)}</p>` : ""}` : ""}
     </div>`;
   }
@@ -72,7 +72,7 @@
     const allowed = (m) => !p || p.modes.includes(m);
     return `<div class="panel">
       <h2>How would you like your puja performed?</h2>
-      <p class="panel-intro">You can browse without logging in. We'll ask you to log in before confirming.</p>
+      <p class="panel-intro">No payment now – send us a booking request, we call you to confirm, and you pay after the puja.</p>
       <div class="choice-grid">
         <button type="button" class="choice${S.mode === "online" ? " selected" : ""}" data-mode="online" ${allowed("online") ? "" : "disabled"}>
           <span class="feature-icon">${icon("video")}</span>
@@ -145,20 +145,6 @@
       ["vatuName", "Boy's name", "text", true], ["vatuAge", "Age", "number", true], ["fatherName", "Father's name", "text", true]] }
   };
 
-  function loginGate() {
-    const next = "book.html?resume=1";
-    return `<div class="panel" style="text-align:center">
-      <span class="feature-icon">${icon("lock")}</span>
-      <h2>Please log in to continue</h2>
-      <p class="panel-intro">Log in or create an account to book. Your details are saved, so you won't need to type them again next time.</p>
-      <div class="cta-buttons" style="justify-content:center">
-        <a class="btn btn-primary btn-lg" href="login.html?next=${encodeURIComponent(next)}">Log in or sign up</a>
-      </div>
-      <p class="hint" style="justify-content:center;margin-top:14px">Google, mobile OTP or email</p>
-      <div class="wizard-nav"><button class="btn btn-outline" data-back>${icon("back")} Back</button></div>
-    </div>`;
-  }
-
   function addrOptions(u) {
     let list = A.allAddresses(u);
     if (S.mode === "home") list = list.filter((a) => a.country === "IN" && a.city === S.city);
@@ -166,8 +152,8 @@
   }
 
   function step3() {
-    const u = A.currentUser();
-    if (!u) return loginGate();
+    const u = A.currentUser() || { address: {} }; // login is optional
+    const loggedIn = !!A.currentUser();
     const p = puja();
     // Defaults from the profile
     S.name = S.name || u.name; S.phone = S.phone || u.phone; S.email = S.email || u.email;
@@ -192,14 +178,14 @@
       </div>`;
 
     return `<form class="panel form" id="detailsForm" novalidate>
-      <div><h2>Your details</h2><p class="panel-intro" style="margin:0">For <strong>${esc(p.name)}</strong> · ${S.mode === "online" ? "Online puja" : "Pandit at home"}. Filled in from your profile – change anything for this booking.</p></div>
+      <div><h2>Your details</h2><p class="panel-intro" style="margin:0">For <strong>${esc(p.name)}</strong> · ${S.mode === "online" ? "Online puja" : "Pandit at home"}. ${loggedIn ? "Filled in from your profile – change anything for this booking." : `We'll call you on this number to confirm. <a class="link-btn" href="login.html?next=${encodeURIComponent("book.html?resume=1")}">Log in</a> to use your saved details.`}</p></div>
 
       <fieldset class="group"><legend>Contact</legend>
         <div class="form">
           <div class="form-row-3">
             <label class="field">Full name <span class="req">*</span><input name="name" value="${esc(S.name)}" required autocomplete="name"></label>
             <label class="field">Mobile number <span class="req">*</span><input name="phone" value="${esc(S.phone)}" required autocomplete="tel" inputmode="tel"></label>
-            <label class="field">Email <span class="req">*</span><input name="email" type="email" value="${esc(S.email)}" required autocomplete="email"></label>
+            <label class="field">Email (optional)<input name="email" type="email" value="${esc(S.email)}" autocomplete="email"></label>
           </div>
         </div>
       </fieldset>
@@ -213,7 +199,7 @@
             <label class="field">Time zone <span class="req">*</span>
               <select name="tz">${co.zones.map(([z, l]) => `<option value="${z}"${z === tz() ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>
           </div>
-          ${co.code !== "IN" ? `<p class="notice notice-ok">${icon("globe")}<span>Time slots will be shown in your local time. International cards and PayPal are accepted.</span></p>` : ""}
+          ${co.code !== "IN" ? `<p class="notice notice-ok">${icon("globe")}<span>Time slots will be shown in your local time. You can pay after the puja by bank transfer, or your family in India can pay us.</span></p>` : ""}
           <label class="check"><input type="checkbox" name="prasadam" ${S.prasadam && co.prasadam.available ? "checked" : ""} ${co.prasadam.available ? "" : "disabled"}>
             <span><strong>Ship Prasadam to me</strong> – ${co.prasadam.available ? `${money(co.prasadam.charge)} to ${esc(co.name)}, ${esc(co.prasadam.days)} after the puja` : esc(co.prasadam.days)}</span></label>
         </div>
@@ -294,6 +280,9 @@
     if (back) back.addEventListener("click", () => go(puja() && U.qs("puja") && !U.qs("mode") ? 1 : 2));
     const form = $("#detailsForm");
     if (!form) return;
+    // Keep what the customer typed if they leave to log in
+    const login = form.querySelector('a[href^="login.html"]');
+    if (login) login.addEventListener("click", () => readDetails(form));
     // Changes that alter the form re-render it (keeping typed values)
     ["countryCode", "city", "addrId"].forEach((n) => {
       const el = form.elements[n];
@@ -312,7 +301,7 @@
       const bad = [];
       $$("[required]", form).forEach((el) => { const miss = !el.value.trim(); el.classList.toggle("invalid", miss); if (miss) bad.push(el); });
       const phoneOk = /^\+?[0-9\s-]{8,16}$/.test(S.phone);
-      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.email);
+      const emailOk = !S.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(S.email);
       form.phone.classList.toggle("invalid", !phoneOk);
       form.email.classList.toggle("invalid", !emailOk);
       let msg = "";
@@ -320,7 +309,7 @@
       else if (!phoneOk) msg = "Please enter a valid mobile number.";
       else if (!emailOk) msg = "Please enter a valid email address.";
       else if (S.mode === "home" && !S.city) msg = "Please choose your city.";
-      else if (S.addrId === "new") {
+      else if (S.addrId === "new" && (S.mode === "home" || S.prasadam)) {
         const a = S.newAddr;
         const need = ["line1", "state", "pin"].concat(S.mode === "online" ? ["city"] : []);
         const missing = need.filter((k) => !a[k]);
@@ -329,18 +318,21 @@
       }
       if (msg) { err.textContent = msg; err.hidden = false; (form.querySelector(".invalid") || err).focus(); return; }
       err.hidden = true;
-      // Save new contact details / address to the profile
+      // Logged-in customers: save new contact details / address to the profile
       const u = A.currentUser();
-      if (!u.name) u.name = S.name;
-      if (!u.phone) u.phone = S.phone;
-      if (!u.email) u.email = S.email;
-      if (S.addrId === "new") {
-        const addr = Object.assign({ id: "a" + Date.now().toString(36), label: S.mode === "home" ? "Puja address" : "Delivery address", country: S.mode === "home" ? "IN" : S.countryCode }, S.newAddr);
-        if (!u.address || !u.address.line1) { u.address = Object.assign({}, addr); delete u.address.id; delete u.address.label; S.addrId = "home"; }
-        else { u.addresses = (u.addresses || []).concat(addr); S.addrId = addr.id; }
-        S.newAddr = {};
+      if (u) {
+        if (!u.name) u.name = S.name;
+        if (!u.phone) u.phone = S.phone;
+        if (!u.email) u.email = S.email;
+        if (S.addrId === "new" && S.newAddr.line1) {
+          const addr = Object.assign({ id: "a" + Date.now().toString(36), label: S.mode === "home" ? "Puja address" : "Delivery address", country: S.mode === "home" ? "IN" : S.countryCode }, S.newAddr);
+          if (!u.address || !u.address.line1) { u.address = Object.assign({}, addr); delete u.address.id; delete u.address.label; S.addrId = "home"; }
+          else { u.addresses = (u.addresses || []).concat(addr); S.addrId = addr.id; }
+          S.newAddr = {};
+        }
+        A.saveUser(u);
       }
-      A.saveUser(u);
+      save();
       go(4);
     });
   }
@@ -372,44 +364,46 @@
 
   /* ---------------- Step 5: review & pay ---------------- */
   function bookingAddress() {
-    const u = A.currentUser();
-    return A.allAddresses(u).find((a) => a.id === S.addrId) || null;
+    const saved = A.allAddresses(A.currentUser()).find((a) => a.id === S.addrId);
+    if (saved) return saved;
+    const a = S.newAddr || {};
+    if (!a.line1 && !a.city) return S.mode === "online" ? { country: country().code } : { city: S.city, country: "IN" };
+    return Object.assign({ country: S.mode === "home" ? "IN" : country().code }, a);
   }
   function step5() {
     const p = puja(), co = country(), q = A.quote(quoteInput()), addr = bookingAddress();
     const intl = co.code !== "IN";
-    const methods = intl
-      ? [["International card", "card", "Visa, Mastercard, Amex"], ["PayPal", "globe", ""], ["Apple / Google Pay", "phone", ""]]
-      : [["UPI", "phone", "GPay, PhonePe, Paytm"], ["Debit / Credit card", "card", ""], ["Net banking", "shield", ""]];
-    if (!methods.some((m) => m[0] === S.pay)) S.pay = methods[0][0];
+    const opts = (A.DATA.site.paymentOptions || {})[intl ? "abroad" : "india"] || ["Cash after the puja"];
+    if (!opts.includes(S.pay)) S.pay = opts[0];
+    const showAddr = S.mode === "home" || (S.prasadam && co.prasadam.available);
     const detailRows = Object.entries(S.details).map(([k, v]) => `${esc(k.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase()))}: ${esc(v)}`).join("<br>");
     return `<div class="panel">
-      <h2>Review &amp; pay</h2>
-      <p class="panel-intro">Please check your booking. It is confirmed only after payment succeeds.</p>
+      <h2>Review &amp; send request</h2>
+      <p class="panel-intro">Please check your details. <strong>No payment is taken now</strong> – we'll call you to confirm the date, time and price.</p>
       <div class="review-grid">
         <div class="review-box"><h4>Puja <button class="link-btn" data-edit="2">Change</button></h4><p><strong>${esc(p.name)}</strong><br>${S.mode === "online" ? "Live online puja" : "Pandit at your home"} · ${esc(p.duration)}</p></div>
-        <div class="review-box"><h4>Date &amp; time <button class="link-btn" data-edit="4">Change</button></h4><p>${A.fmtDay(S.date, S.slot, tz(), true)}<br><strong>${A.fmtTime(S.date, S.slot, tz())}</strong>${tz() !== "Asia/Kolkata" ? ` your time (${A.fmtTime(S.date, S.slot)} IST)` : " IST"}</p></div>
-        <div class="review-box"><h4>${S.mode === "home" ? "Puja address" : "Prasadam address"} <button class="link-btn" data-edit="3">Change</button></h4><p>${S.mode === "online" && !(S.prasadam && co.prasadam.available) ? "No Prasadam delivery" : esc(A.fmtAddress(addr))}</p></div>
-        <div class="review-box"><h4>Contact <button class="link-btn" data-edit="3">Change</button></h4><p>${esc(S.name)}<br>${esc(S.phone)} · ${esc(S.email)}</p></div>
+        <div class="review-box"><h4>Preferred date &amp; time <button class="link-btn" data-edit="4">Change</button></h4><p>${A.fmtDay(S.date, S.slot, tz(), true)}<br><strong>${A.fmtTime(S.date, S.slot, tz())}</strong>${tz() !== "Asia/Kolkata" ? ` your time (${A.fmtTime(S.date, S.slot)} IST)` : " IST"}</p></div>
+        <div class="review-box"><h4>${S.mode === "home" ? "Puja address" : "Prasadam address"} <button class="link-btn" data-edit="3">Change</button></h4><p>${showAddr ? esc(A.fmtAddress(addr)) : "No Prasadam delivery"}</p></div>
+        <div class="review-box"><h4>Contact <button class="link-btn" data-edit="3">Change</button></h4><p>${esc(S.name)}<br>${esc(S.phone)}${S.email ? " · " + esc(S.email) : ""}</p></div>
         ${detailRows || S.instructions || S.language ? `<div class="review-box" style="grid-column:1/-1"><h4>Puja details <button class="link-btn" data-edit="3">Change</button></h4><p>${detailRows}${S.language ? `${detailRows ? "<br>" : ""}Language: ${esc(S.language)}` : ""}${S.instructions ? `<br>Instructions: ${esc(S.instructions)}` : ""}</p></div>` : ""}
       </div>
 
-      <h3>Price</h3>
+      <h3>Estimated price</h3>
       <table class="price-table">${q.lines.map((l) => `<tr><td>${esc(l.label)}${l.note ? `<small>${esc(l.note)}</small>` : ""}</td><td>${money(l.amount)}</td></tr>`).join("")}
-        <tr class="total"><td>Total payable</td><td>${money(q.total)}</td></tr></table>
-      ${intl ? `<p class="price-approx">${U.approx(q.total, co.code)} · charged in INR, your bank converts it</p>` : ""}
+        <tr class="total"><td>Estimated total</td><td>${money(q.total)}</td></tr></table>
+      ${intl ? `<p class="price-approx">${U.approx(q.total, co.code)}</p>` : ""}
 
-      <h3 style="margin-top:24px">Payment method</h3>
+      <h3 style="margin-top:24px">How would you like to pay after the puja?</h3>
       <div class="pay-methods">
-        ${methods.map(([label, ic, sub]) => `<button type="button" class="choice${S.pay === label ? " selected" : ""}" data-pay="${esc(label)}">${icon(ic)}<span><strong>${esc(label)}</strong>${sub ? `<p>${esc(sub)}</p>` : ""}</span></button>`).join("")}
+        ${opts.map((label) => `<button type="button" class="choice${S.pay === label ? " selected" : ""}" data-pay="${esc(label)}">${icon(/cash/i.test(label) ? "heart" : "card")}<span><strong>${esc(label)}</strong></span></button>`).join("")}
       </div>
-      <p class="demo-note" style="margin-top:12px">${icon("info")} Prototype: payment is simulated. No money is charged and no card details are collected.</p>
+      <p class="notice notice-ok" style="margin-top:14px">${icon("shield")}<span>Pay only after the puja is done – in cash, or by UPI / bank transfer. We share payment details on the call.</span></p>
 
-      <label class="check" style="margin-top:18px"><input type="checkbox" id="agree"><span>I agree to the cancellation policy: full refund if cancelled 48+ hours before, 50% if 24–48 hours before. Reschedule free up to 24 hours before.</span></label>
+      <label class="check" style="margin-top:6px"><input type="checkbox" id="agree"><span>I understand this is a booking request. Agni Puja will call me on <strong>${esc(S.phone)}</strong> to confirm.</span></label>
       <p class="form-error" id="payError" role="alert" hidden></p>
       <div class="wizard-nav">
         <button class="btn btn-outline" data-back>${icon("back")} Back</button>
-        <button class="btn btn-primary btn-lg" data-pay-now>${icon("lock")} Pay ${money(q.total)}</button>
+        <button class="btn btn-primary btn-lg" data-pay-now>Send booking request ${icon("arrow")}</button>
       </div>
     </div>`;
   }
@@ -417,72 +411,58 @@
     $$("[data-edit]").forEach((b) => b.addEventListener("click", () => go(+b.dataset.edit)));
     $$("[data-pay]").forEach((b) => b.addEventListener("click", () => { S.pay = b.dataset.pay; save(); $$("[data-pay]").forEach((x) => x.classList.toggle("selected", x === b)); }));
     $("[data-back]").addEventListener("click", () => go(4));
-    $("[data-pay-now]").addEventListener("click", () => {
+    $("[data-pay-now]").addEventListener("click", async () => {
       const err = $("#payError");
-      if (!$("#agree").checked) { err.textContent = "Please accept the cancellation policy to continue."; err.hidden = false; return; }
-      const u = A.currentUser();
-      if (!u) { go(3); return; }
-      const main = $("#wizardMain");
-      main.innerHTML = `<div class="panel"><div class="processing"><span class="spinner"></span><h3>Processing payment…</h3><p class="muted">Please don't close this page.</p></div></div>`;
-      setTimeout(() => {
-        try {
-          const addr = bookingAddress();
-          const b = A.createBooking({
-            pujaId: S.pujaId, mode: S.mode, date: S.date, slot: S.slot, city: S.city, tz: tz(), countryCode: country().code,
-            samagri: S.samagri, prasadam: S.prasadam && country().prasadam.available, address: addr ? Object.assign({}, addr) : null,
-            name: S.name, phone: S.phone, email: S.email, language: S.language, details: S.details, instructions: S.instructions, paymentMethod: S.pay
-          });
-          S = Object.assign(fresh(), { step: 6, lastId: b.id });
-          go(6);
-          U.toast(`<strong>SMS (demo) to ${esc(b.phone)}</strong><br>Booking ${b.id} confirmed for ${esc(b.pujaName)}.`, "sms", 6000);
-        } catch (e) {
-          render();
-          const er = $("#payError");
-          if (er) { er.textContent = e.message; er.hidden = false; }
-          if (/slot/.test(e.message)) setTimeout(() => go(4), 1800);
-        }
-      }, 1600);
+      if (!$("#agree").checked) { err.textContent = "Please tick the box to confirm we can call you."; err.hidden = false; return; }
+      let b;
+      try {
+        const addr = bookingAddress();
+        b = A.createBooking({
+          pujaId: S.pujaId, mode: S.mode, date: S.date, slot: S.slot, city: S.city, tz: tz(), countryCode: country().code,
+          samagri: S.samagri, prasadam: S.prasadam && country().prasadam.available, address: addr ? Object.assign({}, addr) : null,
+          name: S.name, phone: S.phone, email: S.email, language: S.language, details: S.details, instructions: S.instructions, paymentMethod: S.pay
+        });
+      } catch (e) {
+        err.textContent = e.message; err.hidden = false;
+        if (/time/.test(e.message)) setTimeout(() => go(4), 1800);
+        return;
+      }
+      $("#wizardMain").innerHTML = `<div class="panel"><div class="processing"><span class="spinner"></span><h3>Sending your request…</h3><p class="muted">Please don't close this page.</p></div></div>`;
+      const sent = await A.sendToOwner("new", b);
+      A.updateBooking(b.id, (x) => { x.sentToOwner = sent; });
+      S = Object.assign(fresh(), { step: 6, lastId: b.id });
+      go(6);
+      U.mountAccount();
     });
   }
 
-  /* ---------------- Step 6: confirmation ---------------- */
+  /* ---------------- Step 6: request received ---------------- */
   function step6() {
     const b = A.booking(S.lastId);
     if (!b) { S = fresh(); return step1(); }
-    const pd = A.pandit(b.panditId) || {};
     const btz = b.tz;
-    const summaryText = `Namaste, my booking ${b.id}: ${b.pujaName} (${b.mode === "online" ? "online" : "at home"}) on ${A.fmtDay(b.date, b.slot)} at ${A.fmtTime(b.date, b.slot)} IST.`;
+    const wa = U.waLink(A.requestText("new", b));
     return `<div class="panel">
       <div class="confirm-head">
         <span class="success-icon">${icon("check")}</span>
-        <h2>Your puja is booked!</h2>
-        <p class="muted">Payment received · Booking ID <span class="booking-id">${b.id}</span></p>
-        <div class="channels">
-          <span class="badge badge-green">${icon("phone")} SMS sent</span>
-          <span class="badge badge-green">${icon("mail")} Email sent</span>
-          <span class="badge badge-green">${icon("whatsapp")} WhatsApp sent</span>
-        </div>
-        <p class="hint" style="justify-content:center;margin-top:8px">Prototype: messages are recorded, not actually sent.</p>
+        <h2>Booking request received</h2>
+        <p class="muted">Request ID <span class="booking-id">${b.id}</span></p>
+        <p>${b.sentToOwner
+          ? `Thank you, ${esc(b.customerName.split(" ")[0])}. We'll call you on <strong>${esc(b.phone)}</strong> within a few hours (6 AM – 9 PM IST) to confirm.`
+          : `<strong>One more step:</strong> please send your request to us on WhatsApp so we receive it. We'll then call you on <strong>${esc(b.phone)}</strong> to confirm.`}</p>
+        <div class="channels"><a class="btn ${b.sentToOwner ? "btn-outline" : "btn-whatsapp btn-lg"}" href="${wa}" target="_blank" rel="noopener">${icon("whatsapp")} ${b.sentToOwner ? "Also send on WhatsApp" : "Send request on WhatsApp"}</a></div>
       </div>
 
-      ${b.mode === "online" ? `
-        <div class="meet-box">
-          <div><strong>Your live puja link</strong><br><code>${esc(b.meetingLink)}</code><br><small class="muted">Join 10 minutes early. The link also opens from My Bookings.</small></div>
-          <a class="btn btn-primary" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${icon("video")} Open link</a>
-        </div>` : ""}
-
       <div class="review-grid">
-        <div class="review-box"><h4>${esc(b.pujaName)}</h4><p>${A.fmtDay(b.date, b.slot, btz, true)}<br><strong>${A.fmtTime(b.date, b.slot, btz)}</strong>${btz !== "Asia/Kolkata" ? ` your time (${A.fmtTime(b.date, b.slot)} IST)` : " IST"}</p></div>
-        <div class="review-box"><h4>Your Pandit</h4><p><strong>${esc(pd.name || "Being assigned")}</strong><br>${pd.experience ? `${pd.experience} years · ${esc((pd.languages || []).join(", "))}` : ""}
-          ${b.mode === "home" ? `<br>Arrives about 30 minutes before the puja at:<br>${esc(A.fmtAddress(b.address))}` : ""}</p></div>
-        ${b.prasadam ? `<div class="review-box"><h4>Prasadam</h4><p>Packed after the puja and shipped to ${esc(A.fmtAddress(b.address))}. Track it in My Bookings.</p></div>` : ""}
-        <div class="review-box"><h4>Paid</h4><p><strong>${money(b.total)}</strong> by ${esc(b.payment.method)}<br>Ref ${esc(b.payment.txnId)}</p></div>
+        <div class="review-box"><h4>${esc(b.pujaName)}</h4><p>${b.mode === "online" ? "Live online puja" : "Pandit at your home"}<br>Preferred: ${A.fmtDay(b.date, b.slot, btz, true)}, <strong>${A.fmtTime(b.date, b.slot, btz)}</strong>${btz !== "Asia/Kolkata" ? ` your time (${A.fmtTime(b.date, b.slot)} IST)` : " IST"}</p></div>
+        <div class="review-box"><h4>Payment</h4><p>Estimated <strong>${money(b.total)}</strong><br>${esc(b.payment.method)} – nothing to pay now</p></div>
+        <div class="review-box" style="grid-column:1/-1"><h4>What happens next</h4><p>1. We call you to confirm the date, time, Pandit and final price.<br>
+          2. ${b.mode === "online" ? "We send you the live video link for the puja." : "The Pandit visits your home at the confirmed time."}<br>
+          3. You pay after the puja${b.prasadam ? ", and we ship the Prasadam to you" : ""}.</p></div>
       </div>
 
       <div class="wizard-nav" style="justify-content:flex-start">
         <a class="btn btn-primary" href="dashboard.html#bookings">${icon("calendar")} My Bookings</a>
-        <a class="btn btn-outline" href="${U.icsFor(b)}" download="${b.id}.ics">Add to calendar</a>
-        <a class="btn btn-whatsapp" href="${U.waLink(summaryText)}" target="_blank" rel="noopener">${icon("whatsapp")} Message us</a>
         <a class="btn btn-link" href="book.html">Book another puja</a>
       </div>
     </div>`;
@@ -494,7 +474,7 @@
       if (S.step >= 2 && !S.mode) S.step = 1;
       if (S.step >= 3 && !S.pujaId) S.step = 2;
       if (S.step >= 5 && !(S.date && S.slot)) S.step = 4;
-      if (S.step >= 4 && !A.currentUser()) S.step = 3;
+      if (S.step >= 4 && !(S.name && S.phone)) S.step = 3;
     }
     save();
     const views = [null, [step1, bind1], [step2, bind2], [step3, bind3], [step4, bind4], [step5, bind5], [step6, () => {}]];

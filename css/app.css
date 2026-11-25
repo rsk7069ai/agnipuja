@@ -364,6 +364,8 @@ fieldset.group legend { font: 700 1.15rem var(--font-head); color: var(--maroon)
 .table td small { display: block; color: var(--ink-soft); font-size: .78rem; }
 .table .input, .table select { min-height: 38px; padding: .45em .6em; font-size: .85rem; border-radius: 8px; border: 1px solid var(--line); background: var(--white); font-family: var(--font-body); }
 .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.table td .row-actions { min-width: 190px; }
+.table select.input { max-width: 170px; }
 .icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--white); color: var(--maroon); cursor: pointer; }
 .icon-btn:hover { border-color: var(--saffron); color: var(--saffron-dark); }
 .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }

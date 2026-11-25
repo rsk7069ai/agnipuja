@@ -20,7 +20,8 @@
 
   const user = () => A.user(me.id);
   const mine = () => A.bookings().filter((b) => b.userId === me.id);
-  const isUpcoming = (b) => b.status === "confirmed" && A.hoursUntil(b.date, b.slot) > -3;
+  const isUpcoming = (b) => A.isOpen(b) && A.hoursUntil(b.date, b.slot) > -3;
+  const payText = (b) => b.payment.status === "due" ? `Pay after the puja: ${b.payment.method.replace(/ after the puja/i, "")}` : b.payment.status === "paid" ? `Paid (${b.payment.method})` : b.payment.status;
   const sortAsc = (a, b) => A.istToDate(a.date, a.slot) - A.istToDate(b.date, b.slot);
   const tab = () => (TABS.some((t) => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : "overview");
 
@@ -28,7 +29,7 @@
     const all = mine();
     const counts = {
       bookings: all.filter(isUpcoming).length,
-      links: all.filter((b) => isUpcoming(b) && b.mode === "online").length,
+      links: all.filter((b) => isUpcoming(b) && b.mode === "online" && b.meetingLink).length,
       prasadam: all.filter((b) => b.shipping && !["Delivered", "Cancelled"].includes(b.shipping.status)).length
     };
     $("#dashNav").innerHTML = TABS.map(([k, l, ic]) =>
@@ -52,23 +53,24 @@
     const d = new Date(b.date + "T12:00:00Z");
     const up = isUpcoming(b);
     const soon = up && A.hoursUntil(b.date, b.slot) < 1;
+    const live = up && b.mode === "online" && b.status === "confirmed" && b.meetingLink;
     return `<article class="bk">
       <div class="bk-date"><span>${d.toLocaleString("en-GB", { month: "short", timeZone: "UTC" })}</span><b>${d.getUTCDate()}</b><span>${d.toLocaleString("en-GB", { weekday: "short", timeZone: "UTC" })}</span></div>
       <div>
         <div class="bk-badges">${U.modeBadge(b.mode)} ${U.statusBadge(b.status)} ${b.nri ? `<span class="badge">${icon("globe")} NRI</span>` : ""}</div>
         <h3>${esc(b.pujaName)}</h3>
         <ul class="bk-meta">
-          <li>${icon("clock")}<span>${when(b)}</span></li>
-          <li>${icon("priest")}<span>${esc(pd.name || "Pandit being assigned")}</span></li>
+          <li>${icon("clock")}<span>${b.status === "pending" ? "Preferred: " : ""}${when(b)}</span></li>
+          ${b.status === "pending" ? `<li>${icon("phone")}<span>We'll call you on ${esc(b.phone)} to confirm.</span></li>` : `<li>${icon("priest")}<span>${esc(pd.name || "Pandit being assigned")}</span></li>`}
           ${b.mode === "home" ? `<li>${icon("pin")}<span>${esc(A.fmtAddress(b.address))}</span></li>` : ""}
-          ${b.mode === "online" && up ? `<li>${icon("video")}<span><a class="link-btn" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${esc(b.meetingLink.replace("https://", ""))}</a></span></li>` : ""}
-          <li>${icon("card")}<span>${money(b.total)} · ${esc(b.payment.status)}${b.refund ? ` · refund ${money(b.refund)}` : ""} · <small>ID ${b.id}</small></span></li>
+          ${live ? `<li>${icon("video")}<span><a class="link-btn" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${esc(b.meetingLink.replace("https://", ""))}</a></span></li>` : ""}
+          <li>${icon("card")}<span>${money(b.total)} · ${esc(payText(b))}${b.refund ? ` · refund ${money(b.refund)}` : ""} · <small>ID ${b.id}</small></span></li>
         </ul>
         ${b.shipping && b.status !== "cancelled" ? track(b.shipping.status) : ""}
       </div>
       <div class="bk-actions">
-        ${b.mode === "online" && up ? `<a class="btn ${soon ? "btn-primary" : "btn-soft"} btn-sm" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${icon("video")} Join puja</a>` : ""}
-        ${A.canReschedule(b) ? `<button class="btn btn-outline btn-sm" data-resched="${b.id}">${icon("refresh")} Reschedule</button>` : ""}
+        ${live ? `<a class="btn ${soon ? "btn-primary" : "btn-soft"} btn-sm" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${icon("video")} Join puja</a>` : ""}
+        ${A.canReschedule(b) ? `<button class="btn btn-outline btn-sm" data-resched="${b.id}">${icon("refresh")} Change time</button>` : ""}
         ${A.canCancel(b) ? `<button class="btn btn-link btn-sm" data-cancel="${b.id}">Cancel</button>` : ""}
         ${up ? `<a class="btn btn-link btn-sm" href="${U.icsFor(b)}" download="${b.id}.ics">Add to calendar</a>` : ""}
         ${b.status === "completed" ? `<a class="btn btn-soft btn-sm" href="book.html?mode=${b.mode}&puja=${esc(b.pujaId)}">Book again</a>` : ""}
@@ -83,7 +85,7 @@
   const VIEWS = {
     overview() {
       const all = mine(), up = all.filter(isUpcoming).sort(sortAsc);
-      const paid = all.reduce((s, b) => s + b.total - (b.refund || 0), 0);
+      const paid = all.filter(A.isPaid).reduce((s, b) => s + b.total - (b.refund || 0), 0);
       const missing = A.profileMissing(user());
       return `
         ${missing.length ? `<p class="notice notice-warn">${icon("info")}<span>Your profile is incomplete (${missing.join(", ")}). <a class="link-btn" href="profile.html?next=dashboard.html">Complete it</a> to book faster.</span></p>` : ""}
@@ -105,15 +107,15 @@
         all: all.slice().sort((a, b) => sortAsc(b, a))
       };
       const list = groups[filter];
-      return `<div class="dash-head"><div><h2>My Bookings</h2><p>Reschedule up to 24 hours before. Cancel 48+ hours before for a full refund.</p></div></div>
+      return `<div class="dash-head"><div><h2>My Bookings</h2><p>Change the time up to 24 hours before, or cancel free of charge. You pay only after the puja.</p></div></div>
         <div class="filters" style="justify-content:flex-start;margin:0 0 18px">
           ${[["upcoming", "Upcoming"], ["history", "Booking history"], ["all", "All"]].map(([k, l]) => `<button class="chip${filter === k ? " active" : ""}" data-filter="${k}">${l} (${groups[k].length})</button>`).join("")}
         </div>
         ${list.length ? list.map(card).join("") : empty(filter === "upcoming" ? "No upcoming pujas" : "No bookings yet", "Your bookings will appear here.")}`;
     },
     links() {
-      const list = mine().filter((b) => b.mode === "online" && isUpcoming(b)).sort(sortAsc);
-      return `<div class="dash-head"><div><h2>Live Puja Links</h2><p>Join from your phone or computer about 10 minutes before the start time.</p></div></div>
+      const list = mine().filter((b) => b.mode === "online" && isUpcoming(b) && b.status === "confirmed" && b.meetingLink).sort(sortAsc);
+      return `<div class="dash-head"><div><h2>Live Puja Links</h2><p>Links appear here once we confirm your booking. Join about 10 minutes before the start time.</p></div></div>
         ${list.length ? list.map((b) => `<div class="meet-box">
           <div><strong>${esc(b.pujaName)}</strong> · ${when(b)}<br><code>${esc(b.meetingLink)}</code></div>
           <a class="btn btn-primary" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${icon("video")} Join puja</a></div>`).join("")
@@ -130,16 +132,17 @@
         </div>`).join("") : empty("No Prasadam deliveries", "Choose Prasadam delivery when booking an online puja.")}`;
     },
     payments() {
-      const list = mine().sort((a, b) => new Date(b.payment.paidAt) - new Date(a.payment.paidAt));
-      return `<div class="dash-head"><div><h2>Payment History</h2><p>All amounts in Indian Rupees.</p></div></div>
+      const list = mine().sort((a, b) => sortAsc(b, a));
+      const label = { due: "Pay after puja", paid: "Paid", "not charged": "Not charged" };
+      return `<div class="dash-head"><div><h2>Payments</h2><p>No payment is taken online. You pay after the puja, in cash or by UPI / bank transfer. Amounts in Indian Rupees.</p></div></div>
         ${list.length ? `<div class="table-wrap"><table class="table">
-          <thead><tr><th>Date</th><th>Booking</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+          <thead><tr><th>Puja date</th><th>Booking</th><th>Payment method</th><th>Amount</th><th>Status</th></tr></thead>
           <tbody>${list.map((b) => `<tr>
-            <td>${new Date(b.payment.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
-            <td><strong>${esc(b.pujaName)}</strong><small>${b.id} · ${esc(b.payment.txnId)}</small></td>
+            <td>${A.fmtDay(b.date, b.slot, null, true)}</td>
+            <td><strong>${esc(b.pujaName)}</strong><small>${b.id}</small></td>
             <td>${esc(b.payment.method)}</td>
-            <td>${money(b.total)}${b.refund ? `<small>Refunded ${money(b.refund)}</small>` : ""}</td>
-            <td><span class="badge ${b.payment.status === "paid" ? "badge-green" : "badge-gold"}">${esc(b.payment.status)}</span></td></tr>`).join("")}</tbody>
+            <td>${money(b.total)}${b.payment.status === "due" ? "<small>estimate</small>" : ""}${b.refund ? `<small>Refunded ${money(b.refund)}</small>` : ""}</td>
+            <td><span class="badge ${b.payment.status === "paid" ? "badge-green" : "badge-gold"}">${esc(label[b.payment.status] || b.payment.status)}</span></td></tr>`).join("")}</tbody>
         </table></div>` : empty("No payments yet", "Payments for your bookings will appear here.")}`;
     },
     addresses() {
@@ -154,7 +157,7 @@
     },
     profile() {
       const u = user(), a = u.address || {};
-      return `<div class="dash-head"><div><h2>My Profile</h2><p>Signed in with ${u.provider === "google" ? "Google" : u.provider === "phone" ? "mobile OTP" : "email"}.</p></div><a class="btn btn-primary" href="profile.html?next=dashboard.html%23profile">${icon("edit")} Edit profile</a></div>
+      return `<div class="dash-head"><div><h2>My Profile</h2><p>${u.provider === "guest" ? "Saved on this device from your booking." : `Signed in with ${u.provider === "google" ? "Google" : u.provider === "phone" ? "mobile OTP" : "email"}.`}</p></div><a class="btn btn-primary" href="profile.html?next=dashboard.html%23profile">${icon("edit")} Edit profile</a></div>
         <div class="panel"><div class="review-grid" style="margin:0">
           <div class="review-box"><h4>Name</h4><p>${esc(u.name || "—")}</p></div>
           <div class="review-box"><h4>Mobile</h4><p>${esc(u.phone || "—")}</p></div>
@@ -169,8 +172,8 @@
   /* ---------------- Actions ---------------- */
   function rescheduleBox(id) {
     const b = A.booking(id);
-    const m = U.modal(`<h3>Reschedule ${esc(b.pujaName)}</h3>
-      <p class="modal-intro">Currently: ${when(b)}. Choose a new date and time.</p>
+    const m = U.modal(`<h3>Change time – ${esc(b.pujaName)}</h3>
+      <p class="modal-intro">Currently: ${when(b)}. Choose a new preferred date and time – we'll call you to confirm it.</p>
       <div id="rsPicker"></div>
       <p class="form-error" hidden></p>
       <div class="form-actions"><button class="btn btn-outline" data-x>Keep current time</button><button class="btn btn-primary" data-rs-ok disabled>Confirm new time</button></div>`, { wide: true });
@@ -181,9 +184,12 @@
     });
     $("[data-rs-ok]", m.el).addEventListener("click", () => {
       try {
-        A.reschedule(b.id, pick.date, pick.slot);
+        const nb = A.reschedule(b.id, pick.date, pick.slot);
         m.close();
-        U.toast(`Rescheduled. New confirmation sent by SMS, email and WhatsApp (demo).`);
+        A.sendToOwner("reschedule", nb).then((sent) => {
+          U.toast(sent ? "Time change sent. We'll call you to confirm." :
+            `Time change saved. Please also <a class="link-btn" style="color:#fff" href="${U.waLink(A.requestText("reschedule", nb))}" target="_blank" rel="noopener">tell us on WhatsApp</a>.`, "info", 8000);
+        });
         render();
       } catch (e) { const er = $(".form-error", m.el); er.textContent = e.message; er.hidden = false; }
     });
@@ -193,11 +199,16 @@
     const b = A.booking(id);
     const r = A.refundFor(b);
     const ok = await U.confirmBox(`Cancel ${b.pujaName}?`,
-      `${when(b)}.<br><br>Under our policy you will receive a refund of <strong>${money(r.amount)}</strong> (${r.percent}%) to your original payment method within 5–7 working days. This cannot be undone.`,
+      `${when(b)}.<br><br>${r.none ? "No payment has been taken, so there is no charge for cancelling." : `You will receive a refund of <strong>${money(r.amount)}</strong> (${r.percent}%).`} This cannot be undone.`,
       "Cancel booking", true);
     if (!ok) return;
-    try { A.cancel(b.id); U.toast(`Booking ${b.id} cancelled. Refund of ${money(r.amount)} started.`); render(); }
-    catch (e) { U.toast(e.message, "error"); }
+    try {
+      const nb = A.cancel(b.id);
+      render();
+      const sent = await A.sendToOwner("cancel", nb);
+      U.toast(sent ? `Booking ${b.id} cancelled. We've been informed.` :
+        `Booking ${b.id} cancelled. Please also <a class="link-btn" style="color:#fff" href="${U.waLink(A.requestText("cancel", nb))}" target="_blank" rel="noopener">tell us on WhatsApp</a>.`, "info", 8000);
+    } catch (e) { U.toast(e.message, "error"); }
   }
 
   function newAddressBox() {

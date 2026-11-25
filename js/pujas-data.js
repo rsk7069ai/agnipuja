@@ -30,6 +30,15 @@ window.AGNI_DATA = {
     email: "muralisastry2011@gmail.com",
     address: "Periyar Nagar, Chennai, Tamil Nadu",
     hours: "Every day, 6:00 AM – 9:00 PM",
+    // Where booking requests are sent: paste your Google Apps Script web
+    // app link here (see GOOGLE-SHEET-SETUP.md). Until it is set, customers
+    // are asked to send their request to you on WhatsApp.
+    bookingEndpoint: "",
+    // How customers can pay (after the puja – no online payment for now)
+    paymentOptions: {
+      india: ["Cash after the puja", "UPI / bank transfer after the puja"],
+      abroad: ["Bank transfer after the puja", "Family in India pays cash"]
+    },
     social: {
       facebook: "https://facebook.com/",
       instagram: "https://instagram.com/",
@@ -376,11 +385,12 @@ window.AGNI_DATA = {
 
   /* ---------- Frequently asked questions ---------- */
   faqs: [
-    { q: "How does an online puja work?", a: "After you book and pay, you receive a video meeting link by SMS, email and WhatsApp. At the booked time, join from your phone or computer. The Pandit performs the puja live, takes your sankalpam with your family names and gothram, and guides you when to offer prayers. Prasadam is then shipped to your address." },
-    { q: "I live outside India. Can I book?", a: "Yes. Online puja is designed for NRIs. Choose your country and time zone, and we show each slot in your local time. You can pay with international cards or PayPal, and Prasadam is shipped to most countries." },
-    { q: "Do I need an account to book?", a: "You can browse all pujas without an account. To confirm a booking, please log in with Google, your mobile number (OTP) or email. Your details are saved, so you don't need to enter them again next time." },
+    { q: "Do I pay online?", a: "No. Send us a booking request with your preferred date and time – no payment is needed. We call you to confirm the details, and you pay after the puja, in cash or by UPI / bank transfer." },
+    { q: "How does an online puja work?", a: "After we confirm your booking on a call, we send you a video meeting link. At the booked time, join from your phone or computer. The Pandit performs the puja live, takes your sankalpam with your family names and gothram, and guides you when to offer prayers. Prasadam is then shipped to your address." },
+    { q: "I live outside India. Can I book?", a: "Yes. Online puja is designed for NRIs. Choose your country and time zone, and we show each slot in your local time. You can pay by bank transfer after the puja, or your family in India can pay us, and Prasadam is shipped to most countries." },
+    { q: "Do I need an account to book?", a: "No. Just fill in your name, mobile number and puja details. If you log in, your details are saved so you don't need to type them again next time." },
     { q: "Do you bring the puja samagri for at-home pujas?", a: "Yes, if you add the samagri kit while booking. The kit contains everything for the ritual; you only need to arrange flowers, fruits and a lamp, unless you ask us to." },
-    { q: "Can I cancel or reschedule?", a: "Yes, from My Bookings. You can reschedule up to 24 hours before the puja. Cancellations 48 hours or more before get a full refund, and 24 – 48 hours before get a 50% refund." },
+    { q: "Can I cancel or change the time?", a: "Yes, from My Bookings on the same phone or computer, or by calling or messaging us on WhatsApp. As no payment is taken in advance, there is no cancellation charge." },
     { q: "How do I know the correct thithi date for Shraddham?", a: "While booking a Thithi, share the date of passing and the relationship. Our Pandits calculate this year's thithi and confirm the date with you before the ceremony." }
   ]
 };

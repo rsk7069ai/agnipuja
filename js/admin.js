@@ -54,7 +54,7 @@
   root.innerHTML = `<div class="dash"><nav class="dash-nav" id="adminNav" aria-label="Admin sections"></nav><div class="dash-main" id="adminMain"></div></div>`;
   const tab = () => (TABS.some((t) => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : "overview");
   const sortAsc = (a, b) => A.istToDate(a.date, a.slot) - A.istToDate(b.date, b.slot);
-  const isUpcoming = (b) => b.status === "confirmed" && A.hoursUntil(b.date, b.slot) > -3;
+  const isUpcoming = (b) => A.isOpen(b) && A.hoursUntil(b.date, b.slot) > -3;
   const net = (b) => b.total - (b.refund || 0);
   const when = (b) => `${A.fmtDay(b.date, b.slot)} · ${A.fmtTime(b.date, b.slot)} IST`;
   const head = (title, text, action = "") => `<div class="dash-head"><div><h2>${title}</h2>${text ? `<p>${text}</p>` : ""}</div>${action}</div>`;
@@ -76,7 +76,9 @@
 
   V.overview = () => {
     const all = A.bookings(), live = all.filter((b) => b.status !== "cancelled");
-    const revenue = all.reduce((s, b) => s + net(b), 0);
+    const revenue = all.filter(A.isPaid).reduce((s, b) => s + net(b), 0);
+    const due = live.filter((b) => b.payment.status === "due").reduce((s, b) => s + b.total, 0);
+    const pending = all.filter((b) => b.status === "pending");
     const byPuja = {};
     live.forEach((b) => { byPuja[b.pujaName] = (byPuja[b.pujaName] || 0) + b.total; });
     const top = Object.entries(byPuja).sort((a, b) => b[1] - a[1]);
@@ -88,15 +90,16 @@
     const mMax = Math.max(1, ...mKeys.map((k) => months[k]));
     const up = all.filter(isUpcoming).sort(sortAsc).slice(0, 6);
     return head("Reports", "Bookings and revenue at a glance.") + `
+      ${pending.length ? `<p class="notice notice-warn">${icon("phone")}<span><strong>${pending.length} booking request${pending.length > 1 ? "s" : ""}</strong> waiting for your call. <a class="link-btn" href="#bookings" data-act="showPending">Show them</a></span></p>` : ""}
       <div class="kpis">
-        <div class="kpi"><span>Bookings</span><strong>${live.length}</strong><small>${all.length - live.length} cancelled</small></div>
-        <div class="kpi"><span>Net revenue</span><strong>${money(revenue)}</strong><small>after refunds</small></div>
-        <div class="kpi"><span>Upcoming</span><strong>${all.filter(isUpcoming).length}</strong><small>confirmed</small></div>
+        <div class="kpi"><span>Bookings</span><strong>${live.length}</strong><small>${pending.length} to confirm · ${all.length - live.length} cancelled</small></div>
+        <div class="kpi"><span>Received</span><strong>${money(revenue)}</strong><small>payments marked paid</small></div>
+        <div class="kpi"><span>To collect</span><strong>${money(due)}</strong><small>after upcoming pujas</small></div>
         <div class="kpi"><span>NRI bookings</span><strong>${live.filter((b) => b.nri).length}</strong><small>${A.users().length} customers</small></div>
       </div>
       <div class="split-2">
-        <div class="panel"><h3>Revenue by puja</h3><div class="bar-chart">${top.map(([n, v]) => `<div class="bar-row"><span>${esc(n)}</span><div class="bar"><i style="width:${(v / max) * 100}%"></i></div><span>${money(v)}</span></div>`).join("") || "<p class='muted'>No data</p>"}</div></div>
-        <div class="panel"><h3>Revenue by month</h3><div class="bar-chart">${mKeys.map((k) => `<div class="bar-row"><span>${new Date(k + "-01T00:00:00Z").toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}</span><div class="bar"><i style="width:${(months[k] / mMax) * 100}%"></i></div><span>${money(months[k])}</span></div>`).join("")}</div>
+        <div class="panel"><h3>Booking value by puja</h3><div class="bar-chart">${top.map(([n, v]) => `<div class="bar-row"><span>${esc(n)}</span><div class="bar"><i style="width:${(v / max) * 100}%"></i></div><span>${money(v)}</span></div>`).join("") || "<p class='muted'>No data</p>"}</div></div>
+        <div class="panel"><h3>Booking value by month</h3><div class="bar-chart">${mKeys.map((k) => `<div class="bar-row"><span>${new Date(k + "-01T00:00:00Z").toLocaleString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" })}</span><div class="bar"><i style="width:${(months[k] / mMax) * 100}%"></i></div><span>${money(months[k])}</span></div>`).join("")}</div>
           <h3 style="margin-top:22px">Booking type</h3>
           <div class="bar-chart">
             <div class="bar-row"><span>${icon("video")} Online</span><div class="bar"><i style="width:${(online.length / Math.max(1, live.length)) * 100}%"></i></div><span>${online.length}</span></div>
@@ -118,29 +121,34 @@
     const rows = list.map((b) => {
       const slot = A.availability({ date: b.date, mode: b.mode, city: b.city, ignoreId: b.id }).find((s) => s.slot === b.slot);
       const opts = A.pandits().filter((p) => p.id === b.panditId || (slot && slot.pandits.some((x) => x.id === p.id)));
-      const editable = b.status === "confirmed";
+      const editable = A.isOpen(b);
       return `<tr>
-        <td><strong>${b.id}</strong><small>${when(b)}</small></td>
+        <td><strong>${b.id}</strong><small>${when(b)}</small>${U.statusBadge(b.status)}</td>
         <td>${esc(b.customerName)}<small>${esc(b.phone)}</small>${b.nri ? `<span class="badge">${icon("globe")} ${esc((A.country(b.countryCode) || {}).name)}</span>` : ""}</td>
         <td><strong>${esc(b.pujaName)}</strong><small>${b.mode === "online" ? "Online" : "At home · " + esc(b.city)}</small></td>
         <td>${editable ? `<select class="input" data-act="assign" data-id="${b.id}" aria-label="Assign Pandit">${opts.map((p) => `<option value="${p.id}"${p.id === b.panditId ? " selected" : ""}>${esc(p.name)}</option>`).join("")}</select>` : esc((A.pandit(b.panditId) || {}).name || "—")}</td>
-        <td>${U.statusBadge(b.status)}</td>
-        <td>${money(b.total)}${b.refund ? `<small>refund ${money(b.refund)}</small>` : ""}</td>
+        <td>${money(b.total)}<small>${b.payment.status === "due" ? "to collect" : esc(b.payment.status)}</small>${b.refund ? `<small>refund ${money(b.refund)}</small>` : ""}</td>
         <td><div class="row-actions">
+          ${b.status === "pending" ? `<button class="btn btn-primary btn-sm" data-act="confirm" data-id="${b.id}">${icon("check")} Confirm</button>` : ""}
+          ${b.status !== "cancelled" && b.payment.status === "due" && b.status !== "pending" ? `<button class="btn btn-soft btn-sm" data-act="paid" data-id="${b.id}">${icon("card")} Mark paid</button>` : ""}
+          <a class="icon-btn" title="Call customer" aria-label="Call customer" href="tel:${esc(String(b.phone || "").replace(/[^\d+]/g, ""))}">${icon("phone")}</a>
           <button class="icon-btn" title="View details" aria-label="View details" data-act="view" data-id="${b.id}">${icon("info")}</button>
-          ${b.mode === "online" && editable ? `<button class="icon-btn" title="Meeting link" aria-label="Edit meeting link" data-act="link" data-id="${b.id}">${icon("video")}</button>` : ""}
-          ${editable ? `<button class="icon-btn" title="Mark completed" aria-label="Mark completed" data-act="complete" data-id="${b.id}">${icon("check")}</button>
-          <button class="icon-btn" title="Send reminder" aria-label="Send reminder" data-act="remind" data-id="${b.id}">${icon("bell")}</button>
-          <button class="icon-btn" title="Cancel & refund" aria-label="Cancel and refund" data-act="cancel" data-id="${b.id}">${icon("close")}</button>` : ""}
+          ${b.mode === "online" && b.status === "confirmed" ? `<button class="icon-btn" title="Meeting link" aria-label="Edit meeting link" data-act="link" data-id="${b.id}">${icon("video")}</button>` : ""}
+          ${b.status === "confirmed" ? `<button class="icon-btn" title="Mark puja completed" aria-label="Mark puja completed" data-act="complete" data-id="${b.id}">${icon("flame")}</button>
+          <button class="icon-btn" title="Send reminder" aria-label="Send reminder" data-act="remind" data-id="${b.id}">${icon("bell")}</button>` : ""}
+          ${editable ? `<button class="icon-btn" title="Cancel booking" aria-label="Cancel booking" data-act="cancel" data-id="${b.id}">${icon("close")}</button>` : ""}
         </div></td></tr>`;
     });
-    return head("Bookings", "Assign Pandits, share meeting links, complete or cancel bookings.") + `
+    return head("Bookings", "Call to confirm new requests, assign Pandits, share meeting links and record payments.") + `
+      <p class="notice">${icon("info")}<span>${A.endpointReady()
+        ? "New requests from customers also arrive in your Google Sheet and email."
+        : "Requests from customers' phones arrive by WhatsApp until the Google Sheet is connected (see GOOGLE-SHEET-SETUP.md)."} This panel shows bookings saved on this device.</span></p>
       <div class="toolbar">
         <input class="input" type="search" placeholder="Search ID, name, puja, city…" value="${esc(ui.q)}" data-ui="q" aria-label="Search bookings">
         <select class="input" data-ui="type" aria-label="Booking type">${[["all", "All types"], ["online", "Online"], ["home", "At home"], ["nri", "NRI only"]].map(([k, l]) => `<option value="${k}"${ui.type === k ? " selected" : ""}>${l}</option>`).join("")}</select>
-        <select class="input" data-ui="status" aria-label="Status">${[["all", "All statuses"], ["upcoming", "Upcoming"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"]].map(([k, l]) => `<option value="${k}"${ui.status === k ? " selected" : ""}>${l}</option>`).join("")}</select>
+        <select class="input" data-ui="status" aria-label="Status">${[["all", "All statuses"], ["upcoming", "Upcoming"], ["pending", "To confirm"], ["confirmed", "Confirmed"], ["completed", "Completed"], ["cancelled", "Cancelled"]].map(([k, l]) => `<option value="${k}"${ui.status === k ? " selected" : ""}>${l}</option>`).join("")}</select>
         <span class="muted">${list.length} bookings</span>
-      </div>` + table(["Booking", "Customer", "Puja", "Pandit", "Status", "Amount", "Actions"], rows, "No bookings match.");
+      </div>` + table(["Booking", "Customer", "Puja", "Pandit", "Amount", "Actions"], rows, "No bookings match.");
   };
 
   V.pandits = () => {
@@ -189,27 +197,31 @@
         return `<tr><td><strong>${esc(u.name || "—")}</strong><small>Joined ${new Date(u.createdAt).toLocaleDateString("en-GB")}</small></td>
           <td>${esc(u.email || "—")}<small>${esc(u.phone || "")}</small></td>
           <td>${esc((u.address || {}).city || "—")}<small>${esc(co ? co.name : "")}</small>${co && co.code !== "IN" ? ` <span class="badge">NRI</span>` : ""}</td>
-          <td>${esc({ google: "Google", phone: "Mobile OTP", email: "Email" }[u.provider] || u.provider)}</td>
-          <td>${mine.length}</td><td>${money(mine.reduce((s, b) => s + net(b), 0))}</td></tr>`;
+          <td>${esc({ google: "Google", phone: "Mobile OTP", email: "Email", guest: "No login" }[u.provider] || u.provider)}</td>
+          <td>${mine.length}</td><td>${money(mine.filter(A.isPaid).reduce((s, b) => s + net(b), 0))}</td></tr>`;
       }), "No customers found.");
   };
 
   V.payments = () => {
-    const list = A.bookings().slice().sort((a, b) => new Date(b.payment.paidAt) - new Date(a.payment.paidAt));
-    const gross = list.reduce((s, b) => s + b.total, 0), refunds = list.reduce((s, b) => s + (b.refund || 0), 0);
-    return head("Payments", "All payments in INR.") + `
+    const list = A.bookings().filter((b) => b.status !== "cancelled" || A.isPaid(b)).sort((a, b) => sortAsc(b, a));
+    const got = list.filter(A.isPaid).reduce((s, b) => s + b.total, 0);
+    const due = list.filter((b) => b.payment.status === "due").reduce((s, b) => s + b.total, 0);
+    const refunds = list.reduce((s, b) => s + (b.refund || 0), 0);
+    const label = { due: "To collect", paid: "Paid" };
+    return head("Payments", "Payments are collected after the puja – in cash or by UPI / bank transfer. Mark each one when you receive it.") + `
       <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
-        <div class="kpi"><span>Collected</span><strong>${money(gross)}</strong></div>
+        <div class="kpi"><span>Received</span><strong>${money(got)}</strong></div>
+        <div class="kpi"><span>To collect</span><strong>${money(due)}</strong></div>
         <div class="kpi"><span>Refunded</span><strong>${money(refunds)}</strong></div>
-        <div class="kpi"><span>Net</span><strong>${money(gross - refunds)}</strong></div>
       </div>` +
-      table(["Date", "Transaction", "Customer", "Method", "Amount", "Status"], list.map((b) => `<tr>
-        <td>${new Date(b.payment.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</td>
-        <td><strong>${esc(b.payment.txnId)}</strong><small>${b.id} · ${esc(b.pujaName)}</small></td>
+      table(["Puja date", "Booking", "Customer", "Method", "Amount", "Status", ""], list.map((b) => `<tr>
+        <td>${A.fmtDay(b.date)}${b.payment.paidAt ? `<small>paid ${new Date(b.payment.paidAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</small>` : ""}</td>
+        <td><strong>${b.id}</strong><small>${esc(b.pujaName)}</small></td>
         <td>${esc(b.customerName)}${b.nri ? ` <span class="badge">NRI</span>` : ""}</td>
         <td>${esc(b.payment.method)}</td>
         <td>${money(b.total)}${b.refund ? `<small>refund ${money(b.refund)}</small>` : ""}</td>
-        <td><span class="badge ${b.payment.status === "paid" ? "badge-green" : "badge-gold"}">${esc(b.payment.status)}</span></td></tr>`));
+        <td><span class="badge ${b.payment.status === "paid" ? "badge-green" : "badge-gold"}">${esc(label[b.payment.status] || b.payment.status)}</span></td>
+        <td>${b.payment.status === "due" && b.status !== "cancelled" ? `<button class="btn btn-soft btn-sm" data-act="paid" data-id="${b.id}">Mark paid</button>` : ""}</td></tr>`));
   };
 
   V.shipping = () => {
@@ -325,9 +337,29 @@
     }
     else if (act === "cancel") {
       const b = A.booking(id);
-      if (await U.confirmBox(`Cancel ${id}?`, `${esc(b.pujaName)} for ${esc(b.customerName)}. The customer gets a full refund of ${money(b.total)} and is notified.`, "Cancel & refund", true)) {
-        A.cancel(id, "", true); U.toast(`${id} cancelled and refunded.`); render();
+      const paid = A.isPaid(b);
+      if (await U.confirmBox(`Cancel ${id}?`, `${esc(b.pujaName)} for ${esc(b.customerName)}.${paid ? ` The customer's payment of ${money(b.total)} should be refunded.` : " No payment was taken."}`, "Cancel booking", true)) {
+        A.cancel(id, "", true); U.toast(`${id} cancelled.`); render();
       }
+    }
+    else if (act === "showPending") { ui.status = "pending"; location.hash = "bookings"; render(); }
+    else if (act === "confirm") {
+      const b = A.booking(id);
+      if (await U.confirmBox(`Confirm ${id}?`, `Confirm after speaking to ${esc(b.customerName)} (${esc(b.phone)}): ${esc(b.pujaName)} on ${when(b)}.${b.mode === "online" ? " A live video link is created for the puja." : ""}<br><br>The next step lets you send the confirmation on WhatsApp.`, "Confirm booking")) {
+        const nb = A.confirmBooking(id);
+        render();
+        const text = nb.notifications[nb.notifications.length - 1].text;
+        window.open(customerWa(nb, `Namaste ${nb.customerName}, ${text} Please pay after the puja (${nb.payment.method}).`), "_blank", "noopener");
+        U.toast(`${id} confirmed.`);
+      }
+    }
+    else if (act === "paid") {
+      const b = A.booking(id);
+      const m = U.modal(`<h3>Payment received – ${id}</h3>
+        <p class="modal-intro">${esc(b.customerName)} · ${esc(b.pujaName)} · ${money(b.total)}</p>
+        <form class="form"><label class="field">Paid by<select name="method">${["Cash", "UPI", "Bank transfer", "International bank transfer", "Family in India paid cash"].map((x) => `<option${b.payment.method.toLowerCase().startsWith(x.toLowerCase()) ? " selected" : ""}>${x}</option>`).join("")}</select></label>
+        <button class="btn btn-primary" type="submit">Mark as paid</button></form>`);
+      $("form", m.el).addEventListener("submit", (ev) => { ev.preventDefault(); A.markPaid(id, ev.target.method.value); m.close(); U.toast(`${id} marked as paid.`); render(); });
     }
     else if (act === "unblock") { updPandit(id, (p) => (p.blocked = p.blocked.filter((d) => d !== t.dataset.date))); render(); }
     else if (act === "delCity") {

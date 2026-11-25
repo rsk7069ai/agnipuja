@@ -54,7 +54,7 @@
       <ul class="tick-list">
         <li>${icon("clock")} <span><strong>${good.length} of ${A.DATA.booking.slots.length}</strong> daily puja slots fall between 6 AM and 10 PM your time${good[0] ? ` – e.g. ${A.fmtTime(sample, good[0], tz)} your time` : ""}.</span></li>
         <li>${icon("truck")} <span>${co.prasadam.available ? `Prasadam delivery available: <strong>${money(co.prasadam.charge)}</strong>, ${esc(co.prasadam.days)}.` : `Prasadam delivery: ${esc(co.prasadam.days)}. You can still join the live puja.`}</span></li>
-        <li>${icon("card")} <span>Pay by international card or PayPal. Prices in ₹ with ${esc(co.currency)} shown approximately.</span></li>
+        <li>${icon("card")} <span>No online payment – pay after the puja by bank transfer. Prices in ₹ with ${esc(co.currency)} shown approximately.</span></li>
       </ul>
       <a class="btn btn-primary btn-block" href="book.html?mode=online&country=${co.code}">Book Online Puja from ${esc(co.name)}</a>`;
     $$("[data-country]").forEach((b) => b.addEventListener("click", () => { pick = b.dataset.country; A.sWrite("nriCountry", pick); renderNri(); }));

@@ -287,7 +287,7 @@
             return `<button type="button" role="radio" aria-checked="${s.slot === st.slot}" class="slot${s.slot === st.slot ? " selected" : ""}" data-slot="${s.slot}" ${s.available ? "" : "disabled"}>
               <strong>${A.fmtTime(st.date, s.slot, tz)}</strong>${localDay}
               ${showLocal ? `<small>${A.fmtTime(st.date, s.slot)} IST</small>` : ""}
-              <span class="slot-status">${s.available ? `${s.pandits.length} Pandit${s.pandits.length > 1 ? "s" : ""} free` : s.reason === "notice" ? "Too soon" : s.reason === "city" ? "—" : "Fully booked"}</span>
+              <span class="slot-status">${s.available ? "Available" : s.reason === "notice" ? "Too soon" : s.reason === "city" ? "—" : "Fully booked"}</span>
               ${good ? `<span class="badge badge-gold">Good time</span>` : ""}
             </button>`;
           }).join("")}
@@ -303,7 +303,7 @@
 
   /* ---------------- Misc ---------------- */
   const STATUS = {
-    confirmed: ["Confirmed", "badge-green"], completed: ["Completed", "badge-maroon"], cancelled: ["Cancelled", "badge-red"]
+    pending: ["Pending confirmation", "badge-gold"], confirmed: ["Confirmed", "badge-green"], completed: ["Completed", "badge-maroon"], cancelled: ["Cancelled", "badge-red"]
   };
   const statusBadge = (s) => { const [l, c] = STATUS[s] || [s, ""]; return `<span class="badge ${c}">${esc(l)}</span>`; };
   const modeBadge = (m) => m === "online"

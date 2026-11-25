@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NRI Online Puja – Agni Puja</title>
-  <meta name="description" content="Online pujas for NRIs in the USA, UK, Canada, Australia, UAE, Singapore and more. Live video puja in your time zone, international payments and Prasadam delivery.">
+  <meta name="description" content="Online pujas for NRIs in the USA, UK, Canada, Australia, UAE, Singapore and more. Live video puja in your time zone, pay after the puja, and Prasadam delivery.">
   <link rel="icon" href="images/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
         <p class="crumbs"><a href="index.html">Home</a> / NRI Online Puja</p>
         <p class="eyebrow eyebrow-light"><svg><use href="#i-globe"/></svg> For NRI Families</p>
         <h1>Online Puja for NRIs</h1>
-        <p>Pandits in India perform your puja live on video, at a time that suits your time zone. Pay internationally and receive Prasadam at your door.</p>
+        <p>Pandits in India perform your puja live on video, at a time that suits your time zone. Pay after the puja and receive Prasadam at your door.</p>
       </div>
     </section>
 
@@ -77,8 +77,8 @@
           <h2>How Online Puja Works</h2>
         </div>
         <ol class="steps">
-          <li><span class="step-num">1</span><h3>Book &amp; Pay</h3><p>Pick a puja and a slot in your local time. Pay by international card or PayPal.</p></li>
-          <li><span class="step-num">2</span><h3>Get Your Link</h3><p>Video link sent by email, SMS and WhatsApp right after payment.</p></li>
+          <li><span class="step-num">1</span><h3>Send a Request</h3><p>Pick a puja and a time in your local time zone. No payment now.</p></li>
+          <li><span class="step-num">2</span><h3>We Confirm</h3><p>We call or WhatsApp you to confirm, then send the live video link.</p></li>
           <li><span class="step-num">3</span><h3>Sankalpam</h3><p>The Pandit takes sankalpam with your family names, gothram and nakshatram.</p></li>
           <li><span class="step-num">4</span><h3>Join Live</h3><p>Watch and take part from home. Offer prayers when the Pandit guides you.</p></li>
           <li><span class="step-num">5</span><h3>Prasadam</h3><p>Prasadam is packed and shipped internationally, with tracking.</p></li>
@@ -140,7 +140,7 @@
           <ul class="tick-list">
             <li>${icon("video")} <span>Online puja is the recommended service for families abroad.</span></li>
             <li>${icon("truck")} <span>${co.prasadam.available ? `Prasadam to ${esc(co.name)}: <strong>${money(co.prasadam.charge)}</strong> (${U.approx(co.prasadam.charge, co.code)}), ${esc(co.prasadam.days)}` : `Prasadam: ${esc(co.prasadam.days)}`}</span></li>
-            <li>${icon("card")} <span>Pay with international Visa / Mastercard / Amex, PayPal, Apple Pay or Google Pay. Prices in ₹, shown in ${esc(co.currency)} approximately.</span></li>
+            <li>${icon("card")} <span>No online payment. Pay after the puja by bank transfer (from abroad or your NRE/NRO account), or your family in India can pay us. Prices in ₹, shown in ${esc(co.currency)} approximately.</span></li>
             <li>${icon("phone")} <span>WhatsApp support: <a class="link-btn" href="${U.waLink("Namaste, I am an NRI from " + co.name + " and would like help booking an online puja.")}" target="_blank" rel="noopener">${esc(A.DATA.site.phoneDisplay)}</a></span></li>
           </ul>
           <a class="btn btn-primary btn-block" href="book.html?mode=online&country=${co.code}">Book an Online Puja ${icon("arrow")}</a>`;
@@ -158,7 +158,7 @@
               return `<div class="slot" ${s.available ? "" : "aria-disabled='true' style='opacity:.6;background:var(--cream-2)'"}>
                 <strong>${A.fmtTime(d, s.slot, tz)}</strong><small>${A.fmtDay(A.localDateKey(d, s.slot, tz))}</small>
                 <small>${A.fmtTime(d, s.slot)} IST</small>
-                <span class="slot-status">${s.available ? `${s.pandits.length} Pandits free` : "Booked"}</span>
+                <span class="slot-status">${s.available ? "Available" : "Booked"}</span>
                 ${good ? `<span class="badge badge-gold">Good time</span>` : ""}</div>`;
             }).join("")}</div>`;
         }

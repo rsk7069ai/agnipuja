@@ -14,7 +14,7 @@
 
   const DATA = window.AGNI_DATA;
   const BASE_PUJAS = DATA.pujas.slice();
-  const NS = "agnipuja:v1:";
+  const NS = "agnipuja:v2:"; // v2: booking requests, pay after the puja
   const mem = {};
 
   /* ---------------- Storage helpers ---------------- */
@@ -260,13 +260,19 @@
     return { lines, total: lines.reduce((s, l) => s + l.amount, 0) };
   }
 
+  /* Payment is collected after the puja (cash or bank transfer), so most
+     bookings have nothing to refund. The refund rules apply only to
+     bookings already marked as paid. */
+  const isOpen = (b) => b.status === "pending" || b.status === "confirmed";
+  const isPaid = (b) => b.payment && b.payment.status === "paid";
   function refundFor(b) {
+    if (!isPaid(b)) return { percent: 0, amount: 0, none: true };
     const h = hoursUntil(b.date, b.slot);
     const rule = DATA.booking.refundPolicy.find((r) => h >= r.hours);
     return rule ? { percent: rule.percent, amount: Math.round((b.total * rule.percent) / 100) } : null;
   }
-  const canReschedule = (b) => b.status === "confirmed" && hoursUntil(b.date, b.slot) >= DATA.booking.rescheduleHours;
-  const canCancel = (b) => b.status === "confirmed" && !!refundFor(b);
+  const canReschedule = (b) => isOpen(b) && hoursUntil(b.date, b.slot) >= DATA.booking.rescheduleHours;
+  const canCancel = (b) => isOpen(b) && hoursUntil(b.date, b.slot) > 0 && !!refundFor(b);
 
   /* ---------------- Bookings ---------------- */
   function nextBookingId() {
@@ -281,9 +287,11 @@
     const p = puja(b.pujaId) || { name: b.pujaName };
     const when = `${fmtDay(b.date, b.slot)} at ${fmtTime(b.date, b.slot)} IST`;
     const text = {
-      confirmed: `Booking ${b.id} confirmed: ${p.name} (${b.mode === "online" ? "online" : "at home"}) on ${when}.`,
-      rescheduled: `Booking ${b.id} rescheduled to ${when}.`,
-      cancelled: `Booking ${b.id} cancelled. Refund: ₹${(b.refund || 0).toLocaleString("en-IN")}.`,
+      received: `Booking request ${b.id} received: ${p.name} (${b.mode === "online" ? "online" : "at home"}) on ${when}. We will call you to confirm.`,
+      confirmed: `Booking ${b.id} confirmed: ${p.name} (${b.mode === "online" ? "online" : "at home"}) on ${when}.${b.meetingLink ? " Live link: " + b.meetingLink : ""}`,
+      rescheduled: `Booking ${b.id}: new preferred time ${when}. We will call you to confirm.`,
+      cancelled: `Booking ${b.id} cancelled.${b.refund ? " Refund: ₹" + b.refund.toLocaleString("en-IN") + "." : ""}`,
+      paid: `Payment of ₹${(b.total || 0).toLocaleString("en-IN")} received for ${b.id}. Thank you!`,
       reminder: `Reminder: ${p.name} on ${when}.${b.meetingLink ? " Join: " + b.meetingLink : ""}`,
       shipped: `Prasadam for ${b.id} has been shipped${b.shipping && b.shipping.tracking ? " (tracking " + b.shipping.tracking + ")" : ""}.`
     }[kind] || kind;
@@ -293,13 +301,27 @@
     });
   }
 
+  /* Login is optional for now. Without one, the booking is saved under a
+     simple customer record on this device so "My Bookings" still works. */
+  function ensureCustomer(input) {
+    const cur = currentUser();
+    if (cur) return cur;
+    const phone = normPhone(input.phone);
+    let u = users().find((x) => x.provider === "guest" && normPhone(x.phone) === phone);
+    if (!u) {
+      const a = Object.assign({}, input.address || {});
+      delete a.id; delete a.label;
+      u = saveUser(newUser({ name: input.name, phone: input.phone, email: normEmail(input.email), provider: "guest", address: Object.assign(newUser({}).address, a) }));
+    }
+    return signIn(u);
+  }
+
   function createBooking(input) {
-    const u = currentUser();
-    if (!u) throw new Error("Please log in to confirm your booking.");
     const p = puja(input.pujaId);
     if (!p) throw new Error("Please choose a puja.");
     const slot = availability({ date: input.date, mode: input.mode, city: input.city }).find((s) => s.slot === input.slot);
-    if (!slot || !slot.available) throw new Error("Sorry, this slot was just taken. Please pick another time.");
+    if (!slot || !slot.available) throw new Error("Sorry, this time is no longer free. Please pick another time.");
+    const u = ensureCustomer(input);
     const list = bookings();
     const id = nextBookingId();
     const co = country(input.countryCode) || country("IN");
@@ -313,16 +335,83 @@
       details: input.details || {}, instructions: input.instructions || "",
       samagri: input.samagri, prasadam: input.prasadam,
       lines: quote(input).lines, total: quote(input).total,
-      payment: { method: input.paymentMethod, txnId: "TXN" + Date.now().toString().slice(-9), status: "paid", paidAt: nowIso(), currency: "INR" },
-      status: "confirmed", panditId: slot.pandits[0].id,
-      meetingLink: input.mode === "online" ? meetingLinkFor(id) : "",
+      payment: { method: input.paymentMethod || "Cash after the puja", txnId: "", status: "due", paidAt: null, currency: "INR" },
+      status: "pending", panditId: slot.pandits[0].id,
+      meetingLink: "",
       shipping: input.mode === "online" && input.prasadam ? { status: "Awaiting puja", carrier: "", tracking: "", updatedAt: nowIso() } : null,
-      reschedules: 0, history: [{ at: nowIso(), text: "Booked and paid" }], createdAt: nowIso()
+      reschedules: 0, history: [{ at: nowIso(), text: "Booking request sent" }], createdAt: nowIso()
     };
-    notify(b, "confirmed");
+    notify(b, "received");
     list.push(b);
     saveBookings(list);
     return b;
+  }
+
+  /* Admin: confirm after the phone call, and record payment received. */
+  function confirmBooking(id) {
+    return updateBooking(id, (b) => {
+      if (b.status !== "pending") throw new Error("Only pending requests can be confirmed.");
+      b.status = "confirmed";
+      if (b.mode === "online" && !b.meetingLink) b.meetingLink = meetingLinkFor(b.id);
+      b.history.push({ at: nowIso(), text: "Confirmed after call" });
+      notify(b, "confirmed");
+    });
+  }
+  function markPaid(id, method) {
+    return updateBooking(id, (b) => {
+      b.payment = Object.assign({}, b.payment, { status: "paid", method: method || b.payment.method, paidAt: nowIso() });
+      b.history.push({ at: nowIso(), text: `Payment received (${b.payment.method})` });
+      notify(b, "paid");
+    });
+  }
+
+  /* ---------------- Sending requests to the owner ----------------
+     Each request (and any change or cancellation) is posted to a Google
+     Apps Script web app, which adds a row to your Google Sheet and emails
+     you. Set site.bookingEndpoint in js/pujas-data.js – see
+     GOOGLE-SHEET-SETUP.md. */
+  const DETAIL_LABELS = {
+    gothram: "Gothram", nakshatram: "Nakshatram", rasi: "Rasi", names: "Family names",
+    departedName: "Departed", relationship: "Relationship", dateOfPassing: "Date of passing",
+    vatuName: "Boy's name", vatuAge: "Age", fatherName: "Father's name"
+  };
+  function requestFields(type, b) {
+    const co = country(b.countryCode) || {};
+    return {
+      type, id: b.id, status: b.status,
+      sentAt: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+      name: b.customerName, phone: b.phone, email: b.email,
+      puja: b.pujaName, bookingType: b.mode === "online" ? "Online puja" : "Pandit at home",
+      date: fmtDay(b.date, b.slot, null, true), timeIST: fmtTime(b.date, b.slot),
+      customerTime: b.tz && b.tz !== "Asia/Kolkata" ? `${fmtTime(b.date, b.slot, b.tz)} ${fmtDay(b.date, b.slot, b.tz)} (${b.tz})` : "",
+      country: co.name || b.countryCode, city: b.city, address: fmtAddress(b.address),
+      samagri: b.mode === "home" ? (b.samagri ? "Yes" : "No") : "", prasadam: b.mode === "online" ? (b.prasadam ? "Yes" : "No") : "",
+      estimate: b.total, payment: b.payment.method, language: b.language,
+      details: Object.entries(b.details || {}).map(([k, v]) => `${DETAIL_LABELS[k] || k}: ${v}`).join("; "),
+      instructions: b.instructions
+    };
+  }
+  function requestText(type, b) {
+    const f = requestFields(type, b);
+    const head = { new: "New booking request", reschedule: "Booking time change request", cancel: "Booking cancelled by customer" }[type] || type;
+    return [
+      `Namaste Agni Puja – ${head} (${f.id})`, "",
+      `Name: ${f.name}`, `Phone: ${f.phone}`, f.email ? `Email: ${f.email}` : "",
+      `Puja: ${f.puja} – ${f.bookingType}`, `Preferred: ${f.date}, ${f.timeIST} IST`, f.customerTime ? `Customer's time: ${f.customerTime}` : "",
+      `Country: ${f.country}`, f.city ? `City: ${f.city}` : "", f.address ? `Address: ${f.address}` : "",
+      f.samagri ? `Samagri kit: ${f.samagri}` : "", f.prasadam ? `Prasadam delivery: ${f.prasadam}` : "",
+      `Estimated price: ₹${Number(f.estimate).toLocaleString("en-IN")}`, `Payment: ${f.payment}`,
+      f.language ? `Language: ${f.language}` : "", f.details ? `Details: ${f.details}` : "", f.instructions ? `Instructions: ${f.instructions}` : ""
+    ].filter((l, i) => l || i === 1).join("\n");
+  }
+  const endpointReady = () => /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(String(DATA.site.bookingEndpoint || "").trim());
+  function sendToOwner(type, b) {
+    if (!endpointReady()) return Promise.resolve(false);
+    return fetch(DATA.site.bookingEndpoint.trim(), {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(requestFields(type, b))
+    }).then(() => true).catch(() => false);
   }
 
   function updateBooking(id, fn) {
@@ -340,8 +429,9 @@
       const s = availability({ date, mode: b.mode, city: b.city, ignoreId: b.id }).find((x) => x.slot === slot);
       if (!s || !s.available) throw new Error("This slot is not available. Please pick another time.");
       if (!s.pandits.some((p) => p.id === b.panditId)) b.panditId = s.pandits[0].id;
-      b.history.push({ at: nowIso(), text: `Rescheduled from ${b.date} ${b.slot} to ${date} ${slot}` });
+      b.history.push({ at: nowIso(), text: `Time change requested: ${b.date} ${b.slot} → ${date} ${slot}` });
       b.date = date; b.slot = slot; b.reschedules = (b.reschedules || 0) + 1;
+      b.status = "pending"; // to be re-confirmed on a call
       notify(b, "rescheduled");
     });
   }
@@ -349,13 +439,15 @@
   function cancel(id, reason, byAdmin) {
     return updateBooking(id, (b) => {
       if (b.status === "cancelled") throw new Error("This booking is already cancelled.");
-      const r = byAdmin ? { percent: 100, amount: b.total } : refundFor(b);
-      if (!byAdmin && (!r || b.status !== "confirmed")) throw new Error("This booking can no longer be cancelled online. Please contact us.");
+      const paid = isPaid(b);
+      const r = byAdmin ? { percent: paid ? 100 : 0, amount: paid ? b.total : 0 } : refundFor(b);
+      if (!byAdmin && (!r || !isOpen(b))) throw new Error("This booking can no longer be cancelled online. Please contact us.");
       b.status = "cancelled";
       b.refund = r.amount;
-      b.payment.status = r.percent === 100 ? "refunded" : r.amount > 0 ? "partly refunded" : "paid";
+      if (paid) b.payment.status = r.percent === 100 ? "refunded" : r.amount > 0 ? "partly refunded" : "paid";
+      else b.payment.status = "not charged";
       if (b.shipping) b.shipping.status = "Cancelled";
-      b.history.push({ at: nowIso(), text: `Cancelled${byAdmin ? " by admin" : ""}${reason ? " – " + reason : ""}. Refund ₹${r.amount}` });
+      b.history.push({ at: nowIso(), text: `Cancelled${byAdmin ? " by admin" : " by customer"}${reason ? " – " + reason : ""}${r.amount ? ". Refund ₹" + r.amount : ""}` });
       notify(b, "cancelled");
     });
   }
@@ -400,11 +492,13 @@
         date, slot, tz: x.tz || "Asia/Kolkata", countryCode: co.code, nri: co.code !== "IN", city: u.address.city,
         address: u.address, language: "Tamil", details: {}, instructions: "", samagri: !!x.samagri, prasadam: !!x.prasadam,
         lines: q.lines, total: q.total,
-        payment: { method: co.code === "IN" ? "UPI" : "International card", txnId: "TXN" + (550000100 + i * 7919), status: "paid", paidAt: new Date(Date.now() - (30 - off) * 3600000).toISOString(), currency: "INR" },
-        status: past ? "completed" : "confirmed", panditId: pd,
-        meetingLink: mode === "online" ? `https://meet.jit.si/AgniPuja-${id}-demo` : "",
+        payment: past
+          ? { method: co.code === "IN" ? "Cash after the puja" : "Bank transfer after the puja", txnId: "", status: "paid", paidAt: new Date(Date.now() + off * 86400000).toISOString(), currency: "INR" }
+          : { method: co.code === "IN" ? "Cash after the puja" : "Bank transfer after the puja", txnId: "", status: "due", paidAt: null, currency: "INR" },
+        status: past ? "completed" : i % 2 ? "pending" : "confirmed", panditId: pd,
+        meetingLink: mode === "online" && (past || i % 2 === 0) ? `https://meet.jit.si/AgniPuja-${id}-demo` : "",
         shipping: mode === "online" && x.prasadam ? { status: x.ship || "Awaiting puja", carrier: x.ship && x.ship !== "Packed" ? "India Post EMS" : "", tracking: x.ship && x.ship !== "Packed" ? "EM" + (40000 + i) + "IN" : "", updatedAt: nowIso() } : null,
-        reschedules: 0, history: [{ at: nowIso(), text: "Booked and paid (sample data)" }], notifications: [], createdAt: nowIso(), demo: true
+        reschedules: 0, history: [{ at: nowIso(), text: "Booking request (sample data)" }], notifications: [], createdAt: new Date(Date.now() + (off - 5) * 86400000).toISOString(), demo: true
       };
       list.push(b);
     });
@@ -436,6 +530,7 @@
     sendOtp, verifyOtp, profileMissing, profileComplete, allAddresses, fmtAddress, normEmail, normPhone,
     // bookings
     bookings, booking, saveBookings, updateBooking, availability, nextOpenDates, quote, createBooking,
-    reschedule, cancel, refundFor, canReschedule, canCancel, notify, resetDemo
+    reschedule, cancel, refundFor, canReschedule, canCancel, notify, resetDemo,
+    confirmBooking, markPaid, isOpen, isPaid, sendToOwner, requestText, endpointReady
   };
 })();

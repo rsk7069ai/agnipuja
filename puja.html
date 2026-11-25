@@ -75,7 +75,7 @@
                 <h3>Prices</h3>
                 ${has("online") ? `<div class="price-opt"><span>${U.modeBadge("online")}<small>Watch live from anywhere</small></span><strong>${money(p.price.online)}</strong></div>` : ""}
                 ${has("home") ? `<div class="price-opt"><span>${U.modeBadge("home")}<small>+ travel by city, samagri optional</small></span><strong>${money(p.price.home)}</strong></div>` : ""}
-                <p class="hint">${icon("info")} Pandit dakshina included. Final price shown before payment.</p>
+                <p class="hint">${icon("info")} Pandit dakshina included. No online payment – we confirm the price on a call and you pay after the puja.</p>
                 ${has("online") ? `<a class="btn btn-primary btn-block btn-lg" href="book.html?mode=online&puja=${esc(p.id)}">${icon("video")} Book Online Puja</a>` : ""}
                 ${has("home") ? `<a class="btn ${has("online") ? "btn-outline" : "btn-primary"} btn-block btn-lg" href="book.html?mode=home&puja=${esc(p.id)}">${icon("home")} Book a Pandit at Home</a>` : ""}
                 <a class="btn btn-whatsapp btn-block" href="${U.waLink("Namaste, I would like to know more about " + p.name + ".")}" target="_blank" rel="noopener">${icon("whatsapp")} Ask on WhatsApp</a>
