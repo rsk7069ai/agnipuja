@@ -1,9 +1,9 @@
 /* =====================================================================
    AGNI PUJA – SITE CONTENT
    ---------------------------------------------------------------------
-   This is the ONLY file you need to edit to change content on the
-   homepage. No coding knowledge is needed – just copy an existing
-   block, paste it, and change the text.
+   This is the main file you edit to change content on the website.
+   No coding knowledge is needed – just copy an existing block, paste
+   it, and change the text.
 
    HOW TO ADD A NEW PUJA
    1. Copy one { ... } block inside the `pujas` list below.
@@ -11,8 +11,12 @@
    3. Give it a unique `id` (lowercase, no spaces, e.g. "rudra-homam").
    4. Set `type` to "homam", "pooja" or "ceremony".
    5. Set `popular: true` if it should also appear under "Popular Homams".
-   6. Put a photo in the /images folder (or use a web link) and set `image`.
-   That's it – the card, details popup and enquiry form update themselves.
+   6. Set `featured: true` to show it in the "Featured Pujas" section.
+   7. Set the prices (in rupees) and the booking `modes` it allows:
+      "online" (live video puja) and/or "home" (Pandit visits the home).
+   8. Put a photo in the /images folder (or use a web link) and set `image`.
+   That's it – the card, details popup, puja page and booking form update
+   themselves.
    ===================================================================== */
 
 window.AGNI_DATA = {
@@ -33,8 +37,68 @@ window.AGNI_DATA = {
     }
   },
 
-  /* ---------- Pujas & Homams ---------- */
+  /* ---------- Pujas & Homams ----------
+     price.online / price.home : puja charge in ₹ (Pandit dakshina included)
+     samagri : optional puja-materials kit for at-home pujas, in ₹
+     modes   : which booking types are offered
+     fields  : extra details asked for when booking ("sankalpa" = family
+               names, gothram and nakshatram; "departed" = details of the
+               departed ancestor; "vatu" = details of the boy) */
   pujas: [
+    {
+      id: "tharpanam",
+      name: "Tharpanam",
+      type: "ceremony",
+      featured: true,
+      popular: false,
+      image: "",
+      short: "Monthly and Amavasya offerings of water and til to honour and nourish our ancestors.",
+      description:
+        "Tharpanam is the sacred offering of water mixed with black sesame (til) to our Pitrus (ancestors). It is performed on Amavasya, during Mahalaya Paksham, on solar month beginnings and eclipses. Our Pandit guides you through every mantra, so you can perform it correctly even from abroad.",
+      benefits: ["Brings peace to departed ancestors", "Removes Pitru dosham", "Blessings of the ancestors for the family"],
+      duration: "45 min – 1 hour",
+      idealFor: "Amavasya, Mahalaya Paksham, eclipses",
+      price: { online: 1500, home: 3100 },
+      samagri: 500,
+      modes: ["online", "home"],
+      fields: ["departed"]
+    },
+    {
+      id: "thithi-shraddham",
+      name: "Thithi / Shraddham",
+      type: "ceremony",
+      featured: true,
+      popular: false,
+      image: "",
+      short: "The annual remembrance ritual for a departed parent or ancestor, on the correct thithi.",
+      description:
+        "Thithi (Shraddham) is the yearly ceremony performed on the lunar day on which a parent or ancestor passed away. It includes Sankalpam, Homam, Pinda Pradhanam and offerings to Brahmanas. Not sure of the thithi date this year? Share the date of passing and our Pandits will calculate it for you.",
+      benefits: ["Fulfils a sacred duty to departed parents", "Peace for the departed soul", "Protection and blessings for the family"],
+      duration: "2 – 3 hours",
+      idealFor: "Annual death anniversary of parents and ancestors",
+      price: { online: 4500, home: 9500 },
+      samagri: 3500,
+      modes: ["online", "home"],
+      fields: ["departed"]
+    },
+    {
+      id: "upanayanam",
+      name: "Upanayanam",
+      type: "ceremony",
+      featured: true,
+      popular: false,
+      image: "",
+      short: "The sacred thread ceremony – the boy's initiation into Vedic learning and Gayatri mantra.",
+      description:
+        "Upanayanam (Poonal / Sacred Thread Ceremony) marks a boy's initiation into Vedic study, when he receives the Yagnopaveetham and the Gayatri mantra from his father and guru. We arrange the complete ceremony – Udakashanti, Jaatakarma, Choulam, Upanayanam homam and Brahmopadesam – as per your family tradition.",
+      benefits: ["Complete ceremony as per family tradition", "Experienced Vadhyar and assisting Pandits", "Muhurtham fixed for you"],
+      duration: "Full day (as per muhurtham)",
+      idealFor: "Boys aged 7 – 16",
+      price: { home: 21000 },
+      samagri: 7000,
+      modes: ["home"],
+      fields: ["vatu", "sankalpa"]
+    },
     {
       id: "ganapathi-homam",
       name: "Ganapathi Homam",
@@ -46,7 +110,11 @@ window.AGNI_DATA = {
         "Ganapathi Homam is offered to Lord Ganesha, the remover of obstacles. It is traditionally performed before starting a new home, business, marriage or any important undertaking, so that the work proceeds smoothly and successfully.",
       benefits: ["Removes obstacles in new beginnings", "Brings success in business and studies", "Ideal start to any auspicious event"],
       duration: "2 – 3 hours",
-      idealFor: "New beginnings, business, house warming"
+      idealFor: "New beginnings, business, house warming",
+      price: { online: 3100, home: 7500 },
+      samagri: 2500,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "lakshmi-pooja",
@@ -59,7 +127,11 @@ window.AGNI_DATA = {
         "Lakshmi Pooja honours Goddess Mahalakshmi, the giver of wealth, abundance and good fortune. It is especially popular on Fridays, during Diwali and Varalakshmi Vratham, and for families seeking financial stability.",
       benefits: ["Prosperity and financial stability", "Peace and harmony at home", "Auspicious for Diwali and Fridays"],
       duration: "1.5 – 2 hours",
-      idealFor: "Diwali, Fridays, new business"
+      idealFor: "Diwali, Fridays, new business",
+      price: { online: 2100, home: 5100 },
+      samagri: 1500,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "navagraha-homam",
@@ -72,7 +144,11 @@ window.AGNI_DATA = {
         "Navagraha Homam is performed to please the nine celestial bodies – Surya, Chandra, Mangala, Budha, Guru, Shukra, Shani, Rahu and Ketu. It helps reduce the effects of unfavourable planetary positions in one's horoscope.",
       benefits: ["Reduces graha doshas", "Brings balance and stability", "Recommended during difficult planetary periods"],
       duration: "3 – 4 hours",
-      idealFor: "Horoscope doshas, Shani / Rahu periods"
+      idealFor: "Horoscope doshas, Shani / Rahu periods",
+      price: { online: 4100, home: 9500 },
+      samagri: 3000,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "ayushya-homam",
@@ -85,7 +161,11 @@ window.AGNI_DATA = {
         "Ayushya Homam is offered to Ayur Devata, the deity of life, for longevity and good health. It is traditionally performed on a child's first birthday, on the birth star (janma nakshatra) and on milestone birthdays.",
       benefits: ["Long and healthy life", "Protection for children", "Blessings on birthdays and birth star"],
       duration: "2 – 3 hours",
-      idealFor: "Birthdays, first birthday, elders"
+      idealFor: "Birthdays, first birthday, elders",
+      price: { online: 3500, home: 8500 },
+      samagri: 2500,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "sudarshana-homam",
@@ -98,7 +178,11 @@ window.AGNI_DATA = {
         "Sudarshana Homam invokes Sri Sudarshana, the divine chakra of Lord Vishnu. It is performed to remove negative energies, protect the family from harm and bring courage and clarity during difficult times.",
       benefits: ["Protection from negativity", "Removes fear and confusion", "Strength during challenging times"],
       duration: "2.5 – 3 hours",
-      idealFor: "Protection, health concerns, new home"
+      idealFor: "Protection, health concerns, new home",
+      price: { online: 4100, home: 9500 },
+      samagri: 3000,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "saraswathi-pooja",
@@ -111,7 +195,11 @@ window.AGNI_DATA = {
         "Saraswathi Pooja is dedicated to the goddess of learning, music and the arts. It is performed during Navaratri, Vasant Panchami and before exams or Vidyarambham, when children begin their education.",
       benefits: ["Success in education and exams", "Clarity of mind and memory", "Blessings for arts and music"],
       duration: "1 – 1.5 hours",
-      idealFor: "Students, Vidyarambham, Navaratri"
+      idealFor: "Students, Vidyarambham, Navaratri",
+      price: { online: 1800, home: 4500 },
+      samagri: 1200,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "satyanarayana-pooja",
@@ -124,7 +212,11 @@ window.AGNI_DATA = {
         "Satyanarayana Pooja is performed to thank Lord Vishnu and seek his blessings. It includes the recitation of the Satyanarayana Katha and offering of prasadam, and is usually done on Pournami, after a wish is fulfilled or on happy family occasions.",
       benefits: ["Fulfilment of wishes", "Happiness and togetherness in the family", "Gratitude for blessings received"],
       duration: "2 – 2.5 hours",
-      idealFor: "Pournami, house warming, family events"
+      idealFor: "Pournami, house warming, family events",
+      price: { online: 2500, home: 5500 },
+      samagri: 1800,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     },
     {
       id: "gruhapravesam",
@@ -137,7 +229,11 @@ window.AGNI_DATA = {
         "Gruhapravesam is the traditional house-warming ceremony performed before living in a new home. It usually includes Ganapathi Pooja, Punyahavachanam, Vastu Shanti, Navagraha Pooja and the ritual of boiling milk, to bring peace and prosperity to the household.",
       benefits: ["Purifies and blesses the new home", "Removes Vastu doshas", "Peace and prosperity for the family"],
       duration: "3 – 4 hours",
-      idealFor: "New house, flat or villa"
+      idealFor: "New house, flat or villa",
+      price: { home: 15000 },
+      samagri: 5000,
+      modes: ["home"],
+      fields: ["sankalpa"]
     },
     {
       id: "marriage-pooja",
@@ -150,7 +246,11 @@ window.AGNI_DATA = {
         "Our priests perform complete Vedic marriage ceremonies and related rituals such as Nischayathartham, Vratham, Kashi Yatra, Kanyadanam, Mangalya Dharanam and Saptapadi, following your family's tradition and region.",
       benefits: ["Authentic Vedic wedding rituals", "Customised to your family tradition", "Priests for pre-wedding pujas too"],
       duration: "As per muhurtham",
-      idealFor: "Weddings, engagements, Shashtiabdapoorthi"
+      idealFor: "Weddings, engagements, Shashtiabdapoorthi",
+      price: { home: 25000 },
+      samagri: 8000,
+      modes: ["home"],
+      fields: ["sankalpa"]
     },
     {
       id: "special-pujas",
@@ -158,12 +258,16 @@ window.AGNI_DATA = {
       type: "ceremony",
       popular: false,
       image: "images/special-pujas.jpg",
-      short: "Rudrabhishekam, Varalakshmi Vratham, Shraddham and more on request.",
+      short: "Rudrabhishekam, Varalakshmi Vratham, Mrityunjaya Homam and more on request.",
       description:
-        "Looking for something specific? We arrange many other pujas and rituals including Rudrabhishekam, Mrityunjaya Homam, Chandi Homam, Varalakshmi Vratham, Vahana Pooja, Shraddham, Tarpanam and Upanayanam. Tell us your requirement and we will guide you.",
+        "Looking for something specific? We arrange many other pujas and rituals including Rudrabhishekam, Mrityunjaya Homam, Chandi Homam, Varalakshmi Vratham and Vahana Pooja. Book a slot and tell us your requirement in the special instructions – our Pandit will confirm the details with you.",
       benefits: ["Wide range of pujas and rituals", "Guidance on the right puja", "Arranged as per your tradition"],
       duration: "Varies",
-      idealFor: "Any special requirement"
+      idealFor: "Any special requirement",
+      price: { online: 2500, home: 5500 },
+      samagri: 2000,
+      modes: ["online", "home"],
+      fields: ["sankalpa"]
     }
   ],
 
@@ -196,6 +300,87 @@ window.AGNI_DATA = {
       place: "Hyderabad",
       puja: "Ganapathi Homam",
       text: "I enquired on WhatsApp in the morning and they had everything arranged for our office opening the same week. Highly recommended."
+    },
+    {
+      name: "Anand Krishnan",
+      place: "New Jersey, USA",
+      puja: "Thithi (Online)",
+      text: "Living in the US, I worried about doing my father's thithi properly. The Pandit did it live on video at a time that suited us, and the prasadam reached us in two weeks."
     }
+  ],
+
+  /* ---------- Cities where Pandits visit homes ----------
+     travel: travel charge added to at-home bookings in that city (₹) */
+  cities: [
+    { name: "Chennai", state: "Tamil Nadu", travel: 0, active: true },
+    { name: "Bengaluru", state: "Karnataka", travel: 500, active: true },
+    { name: "Hyderabad", state: "Telangana", travel: 500, active: true },
+    { name: "Coimbatore", state: "Tamil Nadu", travel: 300, active: true },
+    { name: "Madurai", state: "Tamil Nadu", travel: 300, active: true },
+    { name: "Tiruchirappalli", state: "Tamil Nadu", travel: 300, active: true },
+    { name: "Kochi", state: "Kerala", travel: 600, active: true },
+    { name: "Mumbai", state: "Maharashtra", travel: 800, active: true },
+    { name: "Pune", state: "Maharashtra", travel: 800, active: true },
+    { name: "Delhi NCR", state: "Delhi", travel: 1000, active: true }
+  ],
+
+  /* ---------- Countries (for NRI online pujas) ----------
+     rate: approximate value of ₹1 in the local currency (shown as "approx.")
+     prasadam: whether Prasadam can be shipped there, the charge (₹) and time */
+  countries: [
+    { code: "IN", name: "India", dial: "+91", currency: "INR", rate: 1, zones: [["Asia/Kolkata", "India (IST)"]], prasadam: { available: true, charge: 250, days: "3 – 5 days" } },
+    { code: "US", name: "USA", dial: "+1", currency: "USD", rate: 0.012, zones: [["America/New_York", "Eastern"], ["America/Chicago", "Central"], ["America/Denver", "Mountain"], ["America/Los_Angeles", "Pacific"]], prasadam: { available: true, charge: 2500, days: "10 – 15 business days" } },
+    { code: "GB", name: "United Kingdom", dial: "+44", currency: "GBP", rate: 0.0094, zones: [["Europe/London", "UK time"]], prasadam: { available: true, charge: 1800, days: "7 – 12 business days" } },
+    { code: "CA", name: "Canada", dial: "+1", currency: "CAD", rate: 0.016, zones: [["America/Toronto", "Eastern (Toronto)"], ["America/Edmonton", "Mountain (Calgary)"], ["America/Vancouver", "Pacific (Vancouver)"]], prasadam: { available: true, charge: 2500, days: "10 – 15 business days" } },
+    { code: "AU", name: "Australia", dial: "+61", currency: "AUD", rate: 0.018, zones: [["Australia/Sydney", "Sydney / Melbourne"], ["Australia/Brisbane", "Brisbane"], ["Australia/Perth", "Perth"]], prasadam: { available: true, charge: 2500, days: "10 – 15 business days" } },
+    { code: "AE", name: "UAE", dial: "+971", currency: "AED", rate: 0.044, zones: [["Asia/Dubai", "UAE time"]], prasadam: { available: true, charge: 1200, days: "5 – 7 business days" } },
+    { code: "SG", name: "Singapore", dial: "+65", currency: "SGD", rate: 0.016, zones: [["Asia/Singapore", "Singapore time"]], prasadam: { available: true, charge: 1500, days: "5 – 8 business days" } },
+    { code: "NZ", name: "New Zealand", dial: "+64", currency: "NZD", rate: 0.02, zones: [["Pacific/Auckland", "NZ time"]], prasadam: { available: true, charge: 2800, days: "12 – 18 business days" } },
+    { code: "DE", name: "Germany", dial: "+49", currency: "EUR", rate: 0.011, zones: [["Europe/Berlin", "Central European"]], prasadam: { available: true, charge: 2200, days: "8 – 14 business days" } },
+    { code: "MY", name: "Malaysia", dial: "+60", currency: "MYR", rate: 0.053, zones: [["Asia/Kuala_Lumpur", "Malaysia time"]], prasadam: { available: true, charge: 1500, days: "6 – 10 business days" } },
+    { code: "QA", name: "Qatar", dial: "+974", currency: "QAR", rate: 0.044, zones: [["Asia/Qatar", "Qatar time"]], prasadam: { available: true, charge: 1300, days: "6 – 9 business days" } },
+    { code: "SA", name: "Saudi Arabia", dial: "+966", currency: "SAR", rate: 0.045, zones: [["Asia/Riyadh", "Saudi time"]], prasadam: { available: false, charge: 0, days: "Not available (customs rules)" } }
+  ],
+
+  /* ---------- Booking rules ---------- */
+  booking: {
+    // Puja start times, in Indian time (IST). Pandits are booked per slot.
+    slots: ["05:30", "07:00", "08:30", "10:00", "11:30", "16:00", "17:30", "19:00"],
+    // How long a Pandit is busy for one booking (minutes). At-home bookings
+    // include travel time.
+    busyMinutes: { online: 120, home: 240 },
+    // Minimum notice before a puja can be booked (hours)
+    leadHours: { online: 12, home: 24 },
+    // How far ahead customers can book (days)
+    maxDaysAhead: 120,
+    languages: ["Tamil", "Telugu", "Kannada", "Malayalam", "Hindi", "Sanskrit only"],
+    // Cancellation refund: hours before the puja → % refunded
+    refundPolicy: [
+      { hours: 48, percent: 100 },
+      { hours: 24, percent: 50 }
+    ],
+    rescheduleHours: 24 // reschedule allowed until this many hours before
+  },
+
+  /* ---------- Pandits (sample) ----------
+     weeklyOff: days off (0 = Sunday … 6 = Saturday) */
+  pandits: [
+    { id: "pd1", name: "Sri Venkatesa Sastrigal", experience: 24, languages: ["Tamil", "Sanskrit only"], modes: ["online", "home"], cities: ["Chennai", "Tiruchirappalli"], weeklyOff: [], blocked: [], active: true },
+    { id: "pd2", name: "Sri Ramakrishna Ghanapaadigal", experience: 31, languages: ["Tamil", "Telugu"], modes: ["online", "home"], cities: ["Chennai", "Coimbatore", "Madurai"], weeklyOff: [2], blocked: [], active: true },
+    { id: "pd3", name: "Sri Subrahmanya Sharma", experience: 18, languages: ["Kannada", "Telugu", "Hindi"], modes: ["online", "home"], cities: ["Bengaluru", "Hyderabad"], weeklyOff: [], blocked: [], active: true },
+    { id: "pd4", name: "Sri Narayana Namboothiri", experience: 20, languages: ["Malayalam", "Tamil"], modes: ["home"], cities: ["Kochi", "Coimbatore"], weeklyOff: [3], blocked: [], active: true },
+    { id: "pd5", name: "Sri Hariharan Vadhyar", experience: 15, languages: ["Tamil", "Hindi"], modes: ["online", "home"], cities: ["Mumbai", "Pune"], weeklyOff: [], blocked: [], active: true },
+    { id: "pd6", name: "Sri Shankar Dikshitar", experience: 27, languages: ["Tamil", "Sanskrit only", "Hindi"], modes: ["online", "home"], cities: ["Delhi NCR"], weeklyOff: [1], blocked: [], active: true },
+    { id: "pd7", name: "Sri Srinivasa Acharya", experience: 12, languages: ["Telugu", "Kannada"], modes: ["online"], cities: [], weeklyOff: [], blocked: [], active: true }
+  ],
+
+  /* ---------- Frequently asked questions ---------- */
+  faqs: [
+    { q: "How does an online puja work?", a: "After you book and pay, you receive a video meeting link by SMS, email and WhatsApp. At the booked time, join from your phone or computer. The Pandit performs the puja live, takes your sankalpam with your family names and gothram, and guides you when to offer prayers. Prasadam is then shipped to your address." },
+    { q: "I live outside India. Can I book?", a: "Yes. Online puja is designed for NRIs. Choose your country and time zone, and we show each slot in your local time. You can pay with international cards or PayPal, and Prasadam is shipped to most countries." },
+    { q: "Do I need an account to book?", a: "You can browse all pujas without an account. To confirm a booking, please log in with Google, your mobile number (OTP) or email. Your details are saved, so you don't need to enter them again next time." },
+    { q: "Do you bring the puja samagri for at-home pujas?", a: "Yes, if you add the samagri kit while booking. The kit contains everything for the ritual; you only need to arrange flowers, fruits and a lamp, unless you ask us to." },
+    { q: "Can I cancel or reschedule?", a: "Yes, from My Bookings. You can reschedule up to 24 hours before the puja. Cancellations 48 hours or more before get a full refund, and 24 – 48 hours before get a 50% refund." },
+    { q: "How do I know the correct thithi date for Shraddham?", a: "While booking a Thithi, share the date of passing and the relationship. Our Pandits calculate this year's thithi and confirm the date with you before the ceremony." }
   ]
 };

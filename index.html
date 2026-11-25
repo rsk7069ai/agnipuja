@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
 
@@ -54,15 +55,18 @@
 
       <nav class="main-nav" id="mainNav" aria-label="Main">
         <a href="#home" class="active">Home</a>
+        <a href="#services">Book Puja</a>
+        <a href="#nri">NRI Puja</a>
         <a href="#pujas">All Pujas</a>
         <a href="#homams">Homams</a>
         <a href="#about">About Us</a>
         <a href="#contact">Contact</a>
-        <button class="btn btn-primary nav-cta-mobile" data-enquire>Enquire Now</button>
+        <a class="btn btn-primary nav-cta-mobile" href="book.html">Book a Puja</a>
+        <button class="btn btn-outline nav-cta-mobile" data-enquire>Enquire Now</button>
       </nav>
 
       <div class="header-actions">
-        <button class="btn btn-primary header-cta" data-enquire>Enquire Now</button>
+        <a class="btn btn-primary header-cta" href="book.html">Book a Puja</a>
         <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
           <svg><use href="#i-menu"/></svg>
         </button>
@@ -76,20 +80,109 @@
       <div class="hero-bg" role="img" aria-label="Sacred fire burning in a traditional homam kundam"></div>
       <div class="container hero-content">
         <p class="eyebrow eyebrow-light"><svg><use href="#i-flame"/></svg> Vedic Pujas &amp; Homams</p>
-        <h1>Bring Divine Blessings Into Your Home</h1>
+        <h1>Book Your Puja – Anytime, Anywhere</h1>
         <p class="hero-sub">
-          Book experienced Vedic priests for homams, pujas and family ceremonies – performed at your home
-          with authentic rituals, proper muhurtham and complete puja arrangements.
+          Join a live <strong>online puja</strong> performed by our Pandits from anywhere in the world, or book an
+          experienced <strong>Pandit to visit your home</strong> – with authentic Vedic rituals, proper muhurtham and
+          complete puja arrangements.
         </p>
         <div class="hero-buttons">
-          <a href="#pujas" class="btn btn-primary btn-lg">Explore Pujas</a>
-          <button class="btn btn-outline-light btn-lg" data-enquire>Book a Puja</button>
+          <a href="book.html?mode=online" class="btn btn-primary btn-lg"><svg><use href="#i-video"/></svg> Book Online Puja</a>
+          <a href="book.html?mode=home" class="btn btn-outline-light btn-lg"><svg><use href="#i-home"/></svg> Book a Pandit at Home</a>
         </div>
         <ul class="hero-trust">
           <li><svg><use href="#i-check"/></svg> Experienced Vedic priests</li>
+          <li><svg><use href="#i-check"/></svg> Live online pujas for NRIs worldwide</li>
           <li><svg><use href="#i-check"/></svg> Samagri arranged for you</li>
           <li><svg><use href="#i-check"/></svg> Tamil, Telugu, Kannada &amp; Hindi</li>
         </ul>
+      </div>
+    </section>
+
+    <!-- ============ TWO WAYS TO BOOK ============ -->
+    <section class="section" id="services">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Two Ways to Book</p>
+          <h2>Online Puja or Pandit at Your Home</h2>
+          <p>Choose how you would like your puja performed. Browse freely – you only need to log in when confirming a booking.</p>
+        </div>
+        <div class="service-split">
+          <article class="card service-card">
+            <div class="media" style="position:relative">
+              <span class="badge badge-saffron service-label"><svg><use href="#i-globe"/></svg> Worldwide · Ideal for NRIs</span>
+              <svg aria-hidden="true"><use href="#i-flame"/></svg>
+              <img src="images/navagraha-homam.jpg" alt="Homam being performed with sacred fire" loading="lazy" onerror="this.remove()">
+            </div>
+            <div class="card-body">
+              <h3><span class="feature-icon"><svg><use href="#i-video"/></svg></span> Online Puja</h3>
+              <p class="price-from" data-price-from="online"></p>
+              <p>Our Pandit performs the puja live on video in your name. Watch and take part from home, wherever you are.</p>
+              <ul class="benefits">
+                <li><svg><use href="#i-check"/></svg> Choose your puja, date and a time slot in your time zone</li>
+                <li><svg><use href="#i-check"/></svg> Live video link shared after booking is confirmed</li>
+                <li><svg><use href="#i-check"/></svg> Sankalpam with your family names and gothram</li>
+                <li><svg><use href="#i-check"/></svg> Prasadam shipped to your address in India or abroad</li>
+              </ul>
+              <div class="card-actions">
+                <a class="btn btn-primary" href="book.html?mode=online">Book Online Puja <svg><use href="#i-arrow"/></svg></a>
+                <a class="btn btn-link" href="nri.html">For NRIs <svg><use href="#i-arrow"/></svg></a>
+              </div>
+            </div>
+          </article>
+          <article class="card service-card">
+            <div class="media" style="position:relative">
+              <span class="badge badge-gold service-label"><svg><use href="#i-pin"/></svg> <span data-city-count>10</span> cities in India</span>
+              <svg aria-hidden="true"><use href="#i-flame"/></svg>
+              <img src="images/gruhapravesam.jpg" alt="Pandit performing a puja at a family home" loading="lazy" onerror="this.remove()">
+            </div>
+            <div class="card-body">
+              <h3><span class="feature-icon"><svg><use href="#i-home"/></svg></span> Pandit at Your Home</h3>
+              <p class="price-from" data-price-from="home"></p>
+              <p>A qualified Pandit visits your home or chosen venue and performs the puja in person, as per your family tradition.</p>
+              <ul class="benefits">
+                <li><svg><use href="#i-check"/></svg> Check Pandit availability for your city and date</li>
+                <li><svg><use href="#i-check"/></svg> Clear pricing – travel and samagri shown upfront</li>
+                <li><svg><use href="#i-check"/></svg> Add special instructions for the Pandit</li>
+                <li><svg><use href="#i-check"/></svg> Pandit's name and arrival time sent to you</li>
+              </ul>
+              <div class="card-actions">
+                <a class="btn btn-primary" href="book.html?mode=home">Book a Pandit at Home <svg><use href="#i-arrow"/></svg></a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURED PUJAS ============ -->
+    <section class="section section-tint" id="featured">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Featured Services</p>
+          <h2>Sacred Duties to Our Ancestors &amp; Children</h2>
+          <p>Tharpanam, Thithi and Upanayanam are among the most important rituals in a family's life. Our senior Pandits perform them with full care.</p>
+        </div>
+        <div class="featured-grid" id="featuredGrid"><!-- filled by js/home.js --></div>
+      </div>
+    </section>
+
+    <!-- ============ NRI ONLINE PUJA ============ -->
+    <section class="section" id="nri">
+      <div class="container nri-band">
+        <div>
+          <p class="eyebrow"><svg><use href="#i-globe"/></svg> For NRI Families</p>
+          <h2>Far From Home, Never Far From Tradition</h2>
+          <p>
+            Living in the USA, UK, Canada, Australia, UAE, Singapore or elsewhere? Book a live online puja performed by
+            our Pandits in India, at a time that suits your time zone. Pay with an international card and receive Prasadam at your door.
+          </p>
+          <div class="country-chips" id="nriCountries"><!-- filled by js/home.js --></div>
+          <div class="hero-buttons">
+            <a href="nri.html" class="btn btn-primary btn-lg">NRI Online Puja <svg><use href="#i-arrow"/></svg></a>
+          </div>
+        </div>
+        <div class="nri-panel" id="nriPanel"><!-- filled by js/home.js --></div>
       </div>
     </section>
 
@@ -169,12 +262,13 @@
           <p class="eyebrow eyebrow-light">Simple &amp; Clear</p>
           <h2>How It Works</h2>
         </div>
-        <ol class="steps">
-          <li><span class="step-num">1</span><h3>Explore</h3><p>Browse our available pujas and homams.</p></li>
-          <li><span class="step-num">2</span><h3>Select</h3><p>Choose the puja that suits your occasion.</p></li>
-          <li><span class="step-num">3</span><h3>Enquire</h3><p>Submit a short enquiry form or message us.</p></li>
-          <li><span class="step-num">4</span><h3>We Call You</h3><p>Our team contacts you to discuss the details.</p></li>
-          <li><span class="step-num">5</span><h3>Confirm</h3><p>Fix the date, priest and arrangements.</p></li>
+        <ol class="steps steps-6">
+          <li><span class="step-num">1</span><h3>Log In</h3><p>Sign in with Google, mobile OTP or email.</p></li>
+          <li><span class="step-num">2</span><h3>Choose Type</h3><p>Online puja or a Pandit at your home.</p></li>
+          <li><span class="step-num">3</span><h3>Select Puja</h3><p>Pick the puja and share your details.</p></li>
+          <li><span class="step-num">4</span><h3>Pick a Slot</h3><p>Choose a date and a time when a Pandit is free.</p></li>
+          <li><span class="step-num">5</span><h3>Pay &amp; Confirm</h3><p>Review, pay securely and get SMS, email &amp; WhatsApp confirmation.</p></li>
+          <li><span class="step-num">6</span><h3>Puja Day</h3><p>Join the live link, or welcome the Pandit home. Prasadam follows.</p></li>
         </ol>
       </div>
     </section>
@@ -233,6 +327,17 @@
       </div>
     </section>
 
+    <!-- ============ FAQ ============ -->
+    <section class="section section-tint" id="faq">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Questions</p>
+          <h2>Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-list" id="faqList"><!-- filled by js/home.js --></div>
+      </div>
+    </section>
+
     <!-- ============ CTA BAND ============ -->
     <section class="cta-band">
       <div class="container cta-inner">
@@ -275,6 +380,11 @@
           <li><a href="#homams">Homams</a></li>
           <li><a href="#occasions">Special Occasions</a></li>
           <li><a href="#about">About Us</a></li>
+          <li><a href="book.html?mode=online">Book Online Puja</a></li>
+          <li><a href="book.html?mode=home">Pandit at Home</a></li>
+          <li><a href="nri.html">NRI Online Puja</a></li>
+          <li><a href="dashboard.html">My Bookings</a></li>
+          <li><a href="#faq">FAQs</a></li>
           <li><a href="#" data-enquire>Enquire Now</a></li>
         </ul>
       </div>
@@ -298,7 +408,7 @@
     <div class="footer-bottom">
       <div class="container">
         <p>© <span id="year"></span> Agni Puja. All rights reserved.</p>
-        <p>Made with devotion in India · <a href="images/CREDITS.md" target="_blank" rel="noopener">Photo credits</a></p>
+        <p>Made with devotion in India · <a href="admin.html">Admin</a> · <a href="images/CREDITS.md" target="_blank" rel="noopener">Photo credits</a></p>
       </div>
     </div>
   </footer>
@@ -324,8 +434,9 @@
         </div>
         <h4>Benefits</h4>
         <ul class="benefits" id="detailsBenefits"></ul>
-        <div class="details-actions">
-          <button class="btn btn-primary" id="detailsEnquire">Enquire for this Puja</button>
+        <div class="details-actions" id="detailsBook"><!-- booking buttons, filled by js/main.js --></div>
+        <div class="details-actions" style="margin-top:10px">
+          <button class="btn btn-outline" id="detailsEnquire">Enquire for this Puja</button>
           <a class="btn btn-whatsapp" id="detailsWhatsapp" href="#" target="_blank" rel="noopener"><svg><use href="#i-whatsapp"/></svg> WhatsApp</a>
         </div>
       </div>
@@ -388,6 +499,9 @@
   </div>
 
   <script src="js/pujas-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/home.js"></script>
 </body>
 </html>

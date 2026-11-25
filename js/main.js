@@ -26,6 +26,14 @@
        ${p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" onerror="this.remove()">` : ""}
      </div>`;
 
+  /* Starting price and booking types, e.g. "From ₹2,100 · Online & at home" */
+  function priceLine(p) {
+    const prices = (p.modes || []).map((m) => (p.price || {})[m]).filter(Boolean);
+    if (!prices.length) return "";
+    const modes = (p.modes || []).map((m) => (m === "online" ? "Online" : "At home")).join(" & ");
+    return `<div class="card-price">From <strong>₹${Math.min(...prices).toLocaleString("en-IN")}</strong> · ${modes}</div>`;
+  }
+
   /* ---------------- Render: puja cards ---------------- */
   function renderPujas() {
     $("#pujaGrid").innerHTML = PUJAS.map(
@@ -36,6 +44,7 @@
           <span class="tag">${TYPE_LABEL[p.type] || "Puja"}</span>
           <h3>${esc(p.name)}</h3>
           <p>${esc(p.short)}</p>
+          ${priceLine(p)}
           <button class="btn btn-soft btn-block" data-details="${esc(p.id)}">View Details ${icon("arrow")}</button>
         </div>
       </article>`
@@ -182,6 +191,11 @@
       openEnquiry(p.id);
     };
     $("#detailsWhatsapp").href = waLink(`Namaste, I would like to enquire about ${p.name}.`);
+    $("#detailsBook").innerHTML =
+      (p.modes || []).map((m) =>
+        `<a class="btn btn-primary" href="book.html?mode=${m}&puja=${encodeURIComponent(p.id)}">${icon(m === "online" ? "video" : "home")} ${m === "online" ? "Book Online" : "Book at Home"}</a>`
+      ).join("") +
+      `<a class="btn btn-link" href="puja.html?id=${encodeURIComponent(p.id)}">Full details &amp; prices ${icon("arrow")}</a>`;
     returnTo = null;
     openModal($("#detailsModal"));
     $("#detailsModal .modal-panel").scrollTop = 0;

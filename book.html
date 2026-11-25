@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book a Puja – Agni Puja</title>
+  <meta name="description" content="Book a live online puja or a Pandit at your home. Choose your puja, date and time slot, and pay securely.">
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body data-nav="book">
+  <div id="siteHeader"></div>
+
+  <main>
+    <section class="page-hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container">
+        <p class="crumbs"><a href="index.html">Home</a> / Book a Puja</p>
+        <p class="eyebrow eyebrow-light">Simple Booking</p>
+        <h1 id="bookTitle">Book a Puja</h1>
+        <p id="bookSub">Online puja from anywhere in the world, or a Pandit at your home – in a few simple steps.</p>
+      </div>
+    </section>
+
+    <section class="section section-sm">
+      <div class="container">
+        <ol class="stepper" id="stepper" aria-label="Booking steps">
+          <li><span>Booking type</span></li>
+          <li><span>Select puja</span></li>
+          <li><span>Your details</span></li>
+          <li><span>Date &amp; time</span></li>
+          <li><span>Review &amp; pay</span></li>
+          <li><span>Confirmed</span></li>
+        </ol>
+        <div class="wizard">
+          <div class="wizard-main" id="wizardMain" aria-live="polite"></div>
+          <aside class="summary" id="summary" aria-label="Booking summary"></aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <script src="js/pujas-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/book.js"></script>
+</body>
+</html>

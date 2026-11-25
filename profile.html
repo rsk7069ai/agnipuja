@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Profile – Agni Puja</title>
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body data-nav="profile">
+  <div id="siteHeader"></div>
+
+  <main>
+    <section class="page-hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container">
+        <p class="eyebrow eyebrow-light">Your Account</p>
+        <h1 id="profileTitle">Complete your profile</h1>
+        <p id="profileSub">We save these details so you don't need to enter them every time you book a puja.</p>
+      </div>
+    </section>
+
+    <section class="section section-sm">
+      <div class="container" style="max-width:860px">
+        <form class="panel form" id="profileForm" novalidate>
+          <fieldset class="group"><legend>Personal details</legend>
+            <div class="form">
+              <label class="field">Full name <span class="req">*</span><input name="name" required autocomplete="name"></label>
+              <div class="form-row">
+                <label class="field">Mobile number <span class="req">*</span><input name="phone" required autocomplete="tel" inputmode="tel" placeholder="+91 98xxxxxxxx"></label>
+                <label class="field">Email address <span class="req">*</span><input name="email" type="email" required autocomplete="email"></label>
+              </div>
+            </div>
+          </fieldset>
+          <fieldset class="group"><legend>Address</legend>
+            <div class="form">
+              <p class="hint"><svg><use href="#i-info"/></svg> Used for at-home pujas and Prasadam delivery. International addresses are supported.</p>
+              <label class="field">Country <span class="req">*</span><select name="country" autocomplete="country"></select></label>
+              <label class="field">Address line 1 <span class="req">*</span><input name="line1" required autocomplete="address-line1" placeholder="House / flat no., street"></label>
+              <label class="field">Address line 2<input name="line2" autocomplete="address-line2" placeholder="Area, landmark"></label>
+              <div class="form-row-3">
+                <label class="field">City <span class="req">*</span><input name="city" required autocomplete="address-level2" list="cityList"></label>
+                <label class="field">State / Province <span class="req">*</span><input name="state" required autocomplete="address-level1"></label>
+                <label class="field"><span data-pin-label>PIN code</span> <span class="req">*</span><input name="pin" required autocomplete="postal-code"></label>
+              </div>
+              <datalist id="cityList"></datalist>
+            </div>
+          </fieldset>
+          <p class="form-error" id="profileError" role="alert" hidden></p>
+          <div class="wizard-nav">
+            <a class="btn btn-outline" href="dashboard.html" id="profileCancel">Cancel</a>
+            <button type="submit" class="btn btn-primary btn-lg">Save &amp; continue</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <script src="js/pujas-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const A = window.Agni, U = window.AgniUI, $ = U.$;
+      const u = U.requireLogin();
+      if (!u) return;
+      const rawNext = U.qs("next") || "dashboard.html";
+      const next = /^[a-z0-9-]+\.html([?#].*)?$/i.test(rawNext) ? rawNext : "dashboard.html";
+      const f = $("#profileForm");
+      if (!U.qs("new")) {
+        $("#profileTitle").textContent = "My Profile";
+        $("#profileSub").textContent = "Keep your contact details and address up to date.";
+      } else {
+        $("#profileCancel").hidden = true;
+      }
+      f.country.innerHTML = A.countries().map((c) => `<option value="${c.code}">${U.esc(c.name)}</option>`).join("") + `<option value="OTHER">Other country</option>`;
+      $("#cityList").innerHTML = A.activeCities().map((c) => `<option value="${U.esc(c.name)}">`).join("");
+      const a = u.address || {};
+      f.name.value = u.name || ""; f.phone.value = u.phone || ""; f.email.value = u.email || "";
+      f.country.value = a.country || "IN"; f.line1.value = a.line1 || ""; f.line2.value = a.line2 || "";
+      f.city.value = a.city || ""; f.state.value = a.state || ""; f.pin.value = a.pin || "";
+      // Lock the field the account was verified with
+      if (u.provider === "phone") f.phone.readOnly = true;
+      if (u.provider !== "phone" && u.email) f.email.readOnly = true;
+      const pinLabel = () => ($("[data-pin-label]").textContent = f.country.value === "IN" ? "PIN code" : "ZIP / Postal code");
+      f.country.addEventListener("change", pinLabel); pinLabel();
+      f.city.addEventListener("change", () => { const c = A.city(f.city.value); if (c && !f.state.value) f.state.value = c.state; });
+
+      f.addEventListener("submit", (e) => {
+        e.preventDefault();
+        let bad = false;
+        f.querySelectorAll("[required]").forEach((el) => { const m = !el.value.trim(); el.classList.toggle("invalid", m); bad = bad || m; });
+        const phoneOk = /^\+?[0-9\s-]{8,16}$/.test(f.phone.value.trim());
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim());
+        const pinOk = f.country.value !== "IN" || /^\d{6}$/.test(f.pin.value.trim());
+        f.phone.classList.toggle("invalid", !phoneOk); f.email.classList.toggle("invalid", !emailOk); f.pin.classList.toggle("invalid", !pinOk);
+        const err = $("#profileError");
+        const msg = bad ? "Please fill in all required fields." : !phoneOk ? "Please enter a valid mobile number." : !emailOk ? "Please enter a valid email address." : !pinOk ? "Please enter a 6-digit PIN code." : "";
+        if (msg) { err.textContent = msg; err.hidden = false; return; }
+        const email = A.normEmail(f.email.value);
+        if (A.users().some((x) => x.id !== u.id && x.email === email)) { err.textContent = "This email is already used by another account."; err.hidden = false; return; }
+        Object.assign(u, { name: f.name.value.trim(), phone: f.phone.value.trim(), email });
+        u.address = { line1: f.line1.value.trim(), line2: f.line2.value.trim(), city: f.city.value.trim(), state: f.state.value.trim(), country: f.country.value, pin: f.pin.value.trim() };
+        A.saveUser(u);
+        U.toast("Profile saved.");
+        setTimeout(() => location.replace(next), 500);
+      });
+    })();
+  </script>
+</body>
+</html>

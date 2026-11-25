@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Puja Details – Agni Puja</title>
+  <meta name="description" content="Puja details, benefits, duration and prices for online and at-home bookings.">
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body data-nav="pujas">
+  <div id="siteHeader"></div>
+
+  <main id="pujaPage"></main>
+
+  <div id="siteFooter"></div>
+
+  <script src="js/pujas-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const A = window.Agni, U = window.AgniUI;
+      const { $, esc, icon, money } = U;
+      const p = A.puja(U.qs("id"));
+      const TYPE = { homam: "Homam", pooja: "Pooja", ceremony: "Ceremony" };
+      if (!p || p.removed) {
+        $("#pujaPage").innerHTML = `<section class="section"><div class="container empty"><h3>Puja not found</h3><p>This puja may have been removed.</p><a class="btn btn-primary" href="index.html#pujas">Browse all pujas</a></div></section>`;
+        return;
+      }
+      document.title = `${p.name} – Book Online or at Home | Agni Puja`;
+      const has = (m) => p.modes.includes(m);
+      const fieldsNote = {
+        departed: "Name of the departed, your relationship and (if known) the date of passing.",
+        sankalpa: "Gothram, nakshatram and names of family members for the sankalpam (optional).",
+        vatu: "The boy's name and age, and the father's name."
+      };
+      const others = A.pujas().filter((x) => x.id !== p.id).sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)).slice(0, 4);
+
+      $("#pujaPage").innerHTML = `
+        <section class="page-hero">
+          <div class="hero-bg" aria-hidden="true"></div>
+          <div class="container">
+            <p class="crumbs"><a href="index.html">Home</a> / <a href="index.html#pujas">All Pujas</a> / ${esc(p.name)}</p>
+            <p class="eyebrow eyebrow-light">${p.featured ? "Featured " : ""}${TYPE[p.type] || "Puja"}</p>
+            <h1>${esc(p.name)}</h1>
+            <p>${esc(p.short)}</p>
+          </div>
+        </section>
+        <section class="section section-sm">
+          <div class="container puja-layout">
+            <div>
+              ${U.media(p)}
+              <h2>About ${esc(p.name)}</h2>
+              <p>${esc(p.description)}</p>
+              <div class="details-meta">
+                <div><span>Duration</span><strong>${esc(p.duration)}</strong></div>
+                <div><span>Ideal for</span><strong>${esc(p.idealFor)}</strong></div>
+              </div>
+              <h3>Benefits</h3>
+              <ul class="benefits">${p.benefits.map((b) => `<li>${icon("check")}${esc(b)}</li>`).join("")}</ul>
+              <div class="include-grid">
+                ${has("online") ? `<div class="review-box"><h4>${icon("video")} Online puja includes</h4><p>Live video link · sankalpam in your family's name · Pandit dakshina · optional Prasadam delivery in India and abroad</p></div>` : ""}
+                ${has("home") ? `<div class="review-box"><h4>${icon("home")} At-home puja includes</h4><p>Pandit visit · complete rituals as per your tradition · Pandit dakshina · optional samagri kit (${money(p.samagri)})</p></div>` : ""}
+              </div>
+              ${(p.fields || []).length ? `<p class="notice" style="margin-top:20px">${icon("info")}<span><strong>Details we'll ask for:</strong> ${(p.fields || []).map((f) => fieldsNote[f]).filter(Boolean).join(" ")}</span></p>` : ""}
+            </div>
+            <aside class="summary">
+              <div class="panel price-card">
+                <h3>Prices</h3>
+                ${has("online") ? `<div class="price-opt"><span>${U.modeBadge("online")}<small>Watch live from anywhere</small></span><strong>${money(p.price.online)}</strong></div>` : ""}
+                ${has("home") ? `<div class="price-opt"><span>${U.modeBadge("home")}<small>+ travel by city, samagri optional</small></span><strong>${money(p.price.home)}</strong></div>` : ""}
+                <p class="hint">${icon("info")} Pandit dakshina included. Final price shown before payment.</p>
+                ${has("online") ? `<a class="btn btn-primary btn-block btn-lg" href="book.html?mode=online&puja=${esc(p.id)}">${icon("video")} Book Online Puja</a>` : ""}
+                ${has("home") ? `<a class="btn ${has("online") ? "btn-outline" : "btn-primary"} btn-block btn-lg" href="book.html?mode=home&puja=${esc(p.id)}">${icon("home")} Book a Pandit at Home</a>` : ""}
+                <a class="btn btn-whatsapp btn-block" href="${U.waLink("Namaste, I would like to know more about " + p.name + ".")}" target="_blank" rel="noopener">${icon("whatsapp")} Ask on WhatsApp</a>
+                ${!has("online") ? `<p class="hint" style="margin-top:12px">${icon("globe")} This ceremony is performed in person only.</p>` : ""}
+              </div>
+            </aside>
+          </div>
+        </section>
+        <section class="section section-tint section-sm">
+          <div class="container">
+            <div class="section-head"><p class="eyebrow">You May Also Need</p><h2>Other Pujas</h2></div>
+            <div class="card-grid">${others.map((o) => `
+              <article class="card puja-card">
+                ${U.media(o)}
+                <div class="card-body">
+                  <h3>${esc(o.name)}</h3><p>${esc(o.short)}</p>
+                  <div class="card-price">From <strong>${money(A.startingPrice(o))}</strong></div>
+                  <a class="btn btn-soft btn-block" href="puja.html?id=${esc(o.id)}">View Details ${icon("arrow")}</a>
+                </div>
+              </article>`).join("")}</div>
+          </div>
+        </section>`;
+    })();
+  </script>
+</body>
+</html>

@@ -1,30 +1,73 @@
-# Agni Puja – Homepage
+# Agni Puja – Puja Booking Website
 
-A static homepage: plain HTML, CSS and JavaScript. There's no build step and no server code, so you can host it anywhere (Netlify, GitHub Pages, cPanel hosting and so on).
+A static website: plain HTML, CSS and JavaScript. There's no build step and no server code, so you can host it anywhere (GitHub Pages, Netlify, cPanel hosting and so on).
+
+Customers can book pujas in two ways:
+
+- **Online Puja**: a Pandit performs the puja live on video. This is built for NRIs, with time slots in the customer's time zone, international payment options and Prasadam shipping.
+- **Pandit at Home**: a Pandit visits the customer's home. This depends on the city and on which Pandits are free.
+
+> **Prototype:** login, OTP, payments and SMS/email/WhatsApp messages are simulated. Accounts and bookings are saved only in the visitor's own browser (localStorage). See [Going live](#going-live) for what is needed before taking real bookings.
+
+## Pages
+
+| Page | What it is |
+|---|---|
+| `index.html` | Homepage: hero, the two booking types, featured pujas (Tharpanam, Thithi, Upanayanam), NRI section, all pujas, homams, how it works, why choose us, occasions, about, testimonials, FAQs, contact |
+| `book.html` | Step-by-step booking: type → puja → details → date and time → review and pay → confirmation. Login is required from the details step onwards |
+| `login.html` | Log in or sign up with Google, mobile OTP or email |
+| `profile.html` | Customer registration form: name, mobile, email and full address, saved for future bookings |
+| `nri.html` | NRI Online Puja: country and time zone, slots in local time, international payments and a Prasadam shipping table |
+| `puja.html?id=…` | Detail page for one puja, with prices for online and at-home bookings |
+| `dashboard.html` | Customer dashboard: upcoming bookings and booking history, live puja links, Prasadam tracking, payments, saved addresses, profile, reschedule and cancel |
+| `admin.html` | Admin panel: reports and revenue, bookings (assign Pandit, meeting link, complete, cancel and refund, reminders), Pandit availability, cities, puja services and prices, customers, payments, Prasadam shipping, notifications |
 
 ## Files
 
 | File | What it is |
 |---|---|
-| `index.html` | Page structure (header, hero, sections, footer, popups) |
-| `css/styles.css` | All styling. The colours and fonts are set at the top (`:root`) |
-| `js/pujas-data.js` | **All editable content:** pujas, occasions, testimonials and contact details |
-| `js/main.js` | Builds the cards and runs the popups, filter, menu and enquiry form |
-| `images/` | Photos and logo. See `images/CREDITS.md` |
+| `js/pujas-data.js` | **All editable content:** pujas and prices, cities, countries, sample Pandits, time slots, booking rules, FAQs, testimonials, contact details |
+| `js/store.js` | Data layer: accounts, bookings, Pandit availability, pricing, refunds. This is the file to replace with a real backend |
+| `js/ui.js` | Shared header and footer for the new pages, account menu, popups and the time-slot picker |
+| `js/main.js`, `js/home.js` | Homepage behaviour (original sections, then the new ones) |
+| `js/book.js`, `js/login.js`, `js/dashboard.js`, `js/admin.js` | Behaviour for each page |
+| `css/styles.css` | The original design: colours, fonts and homepage styles |
+| `css/app.css` | Styles for the booking, login and dashboard pages and the new homepage sections. It uses the same colours and fonts |
 
 ## Common edits
 
-- **Add a puja:** open `js/pujas-data.js`, copy one `{ ... }` block in `pujas`, then change it. The card, details popup, footer link and enquiry dropdown all update automatically. Set `popular: true` on a homam to also show it under *Popular Homams*.
-- **Change your phone, WhatsApp, email, address or social links:** edit the `site` block at the top of `js/pujas-data.js`. The numbers there now are samples.
-- **Replace photos:** put your own photo in `images/` using the same file name, or change the `image` path. A card with a missing photo shows a saffron flame design instead.
+- **Add a puja or change a price:** edit the `pujas` list in `js/pujas-data.js`. `modes` sets whether it can be booked online, at home, or both. Set `featured: true` to show it under *Featured Services*.
+- **Cities for home visits, countries for NRIs, time slots, refund rules:** these are also in `js/pujas-data.js`.
+- **Contact details:** edit the `site` block at the top of `js/pujas-data.js`.
+- **Photos:** Tharpanam, Thithi and Upanayanam have no photo yet, so they show the saffron flame design. Add a photo to `images/` and set `image` to its path.
 
-## Enquiry form
+## How booking works
 
-No backend is needed. When someone submits the form, it opens **WhatsApp** (or their **email app**) with all their details filled in, addressed to your number or email. To collect enquiries in an inbox or spreadsheet instead, you can later point the form at a service like Formspree or Google Forms.
+- Visitors can browse without an account. From the *details* step onwards, the booking page asks them to log in.
+- Time slots come from Pandit availability. A slot is shown as free only when at least one active Pandit is free at that time. For a home visit, that Pandit must also serve the customer's city, be working that weekday and not have the date blocked. Home visits keep a Pandit busy for 4 hours (including travel). Online pujas keep a Pandit busy for 2 hours.
+- A booking is created only after the payment step succeeds. A Pandit is assigned automatically, and an admin can change it later.
+- Online bookings get a free Jitsi Meet link automatically. Admins can replace it with a Zoom or Google Meet link.
+- Customers can reschedule up to 24 hours before the puja. Cancelling 48+ hours before gives a full refund, and 24–48 hours before gives 50%.
+
+## Admin panel
+
+Open `admin.html` (there's also a link in the footer) and enter the admin password. The site stores only a SHA-256 hash of the password (`ADMIN_HASH` in `js/admin.js`). After 5 wrong attempts, login is paused for 30 seconds.
+
+This keeps casual visitors out, but it is not real security: the check runs in the visitor's browser. Real protection comes with the server login described in [Going live](#going-live). To change the password, set `ADMIN_HASH` to the SHA-256 of `agnipuja-admin:` followed by the new password.
+
+In this prototype the admin panel manages the data saved in that browser. Use **Reset demo data** to restore the sample bookings.
+
+## Going live
+
+Before taking real bookings, replace the simulated parts in `js/store.js` with real services:
+
+1. **Backend and database** (for example Firebase or Supabase) to store customers, bookings, Pandits and cities centrally, so the admin sees every customer's bookings.
+2. **Login:** Firebase Authentication (or similar) handles *Continue with Google*, *mobile OTP* (real SMS) and email/password.
+3. **Payments:** Razorpay for India (UPI, cards, net banking), plus Stripe or PayPal for international cards. Create the booking only after the payment gateway confirms payment on the server.
+4. **Notifications:** an SMS provider (such as MSG91 or Twilio), an email service, and the WhatsApp Business API to send confirmations and reminders.
+5. **Admin security:** protect `admin.html` with an admin-only login checked on the server.
 
 ## Preview locally
-
-Open `index.html` in a browser, or run:
 
 ```
 python -m http.server 5500

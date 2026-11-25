@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NRI Online Puja – Agni Puja</title>
+  <meta name="description" content="Online pujas for NRIs in the USA, UK, Canada, Australia, UAE, Singapore and more. Live video puja in your time zone, international payments and Prasadam delivery.">
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body data-nav="nri">
+  <div id="siteHeader"></div>
+
+  <main>
+    <section class="page-hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container">
+        <p class="crumbs"><a href="index.html">Home</a> / NRI Online Puja</p>
+        <p class="eyebrow eyebrow-light"><svg><use href="#i-globe"/></svg> For NRI Families</p>
+        <h1>Online Puja for NRIs</h1>
+        <p>Pandits in India perform your puja live on video, at a time that suits your time zone. Pay internationally and receive Prasadam at your door.</p>
+      </div>
+    </section>
+
+    <!-- Country & time zone -->
+    <section class="section section-sm">
+      <div class="container nri-band">
+        <div>
+          <p class="eyebrow">Step 1</p>
+          <h2>Where do you live?</h2>
+          <p>Choose your country and time zone. We'll show you puja times in your local time, the delivery options for Prasadam and the payment methods you can use.</p>
+          <div class="form" style="max-width:460px">
+            <div class="form-row">
+              <label class="field">Country<select class="input" id="nriCountry"></select></label>
+              <label class="field">Time zone<select class="input" id="nriTz"></select></label>
+            </div>
+          </div>
+          <div class="country-chips" id="nriChips"></div>
+        </div>
+        <div class="nri-panel" id="nriInfo"></div>
+      </div>
+    </section>
+
+    <!-- Slots in local time -->
+    <section class="section section-tint section-sm">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Step 2</p>
+          <h2>Puja Times in Your Time Zone</h2>
+          <p>Real availability for the next open date. Pick any of these when you book.</p>
+        </div>
+        <div class="panel" id="nriSlots"></div>
+      </div>
+    </section>
+
+    <!-- Online pujas -->
+    <section class="section section-sm">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Step 3</p>
+          <h2>Choose Your Online Puja</h2>
+          <p>All pujas below can be performed live online in your name, with sankalpam for your family.</p>
+        </div>
+        <div class="card-grid" id="nriPujas"></div>
+      </div>
+    </section>
+
+    <!-- How it works for NRIs -->
+    <section class="section section-maroon">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow eyebrow-light">From Anywhere in the World</p>
+          <h2>How Online Puja Works</h2>
+        </div>
+        <ol class="steps">
+          <li><span class="step-num">1</span><h3>Book &amp; Pay</h3><p>Pick a puja and a slot in your local time. Pay by international card or PayPal.</p></li>
+          <li><span class="step-num">2</span><h3>Get Your Link</h3><p>Video link sent by email, SMS and WhatsApp right after payment.</p></li>
+          <li><span class="step-num">3</span><h3>Sankalpam</h3><p>The Pandit takes sankalpam with your family names, gothram and nakshatram.</p></li>
+          <li><span class="step-num">4</span><h3>Join Live</h3><p>Watch and take part from home. Offer prayers when the Pandit guides you.</p></li>
+          <li><span class="step-num">5</span><h3>Prasadam</h3><p>Prasadam is packed and shipped internationally, with tracking.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section-sm">
+      <div class="container">
+        <div class="section-head"><p class="eyebrow">Shipping</p><h2>International Prasadam Delivery</h2></div>
+        <div class="table-wrap">
+          <table class="table" id="shipTable">
+            <thead><tr><th>Country</th><th>Prasadam delivery</th><th>Charge</th><th>Time after puja</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="hint" style="margin-top:12px"><svg><use href="#i-info"/></svg> Dry prasadam (kumkum, vibhuti, akshatai, raksha and dry sweets) is shipped. Delivery times are estimates and may vary with customs.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <script src="js/pujas-data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui.js"></script>
+  <script>
+    (function () {
+      "use strict";
+      const A = window.Agni, U = window.AgniUI;
+      const { $, $$, esc, icon, money } = U;
+      const abroad = A.countries().filter((c) => c.code !== "IN");
+      // Guess the visitor's country from their browser time zone
+      const myTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const guess = abroad.find((c) => c.zones.some((z) => z[0] === myTz));
+      let code = U.qs("country") || A.sRead("nriCountry", null) || (guess ? guess.code : "US");
+      let tz = "";
+
+      $("#nriCountry").innerHTML = abroad.map((c) => `<option value="${c.code}">${esc(c.name)}</option>`).join("");
+      $("#nriChips").innerHTML = abroad.slice(0, 7).map((c) => `<button type="button" class="chip" data-c="${c.code}">${esc(c.name)}</button>`).join("");
+
+      function render() {
+        const co = A.country(code) || abroad[0];
+        code = co.code;
+        if (!co.zones.some((z) => z[0] === tz)) tz = (co.zones.find((z) => z[0] === myTz) || co.zones[0])[0];
+        A.sWrite("nriCountry", code);
+        $("#nriCountry").value = code;
+        $("#nriTz").innerHTML = co.zones.map(([z, l]) => `<option value="${z}"${z === tz ? " selected" : ""}>${esc(l)}</option>`).join("");
+        $$("[data-c]").forEach((b) => b.classList.toggle("active", b.dataset.c === code));
+        const now = new Date();
+        const f = (zone) => new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit" }).format(now);
+        const fd = (zone) => new Intl.DateTimeFormat("en-GB", { timeZone: zone, weekday: "short", day: "numeric", month: "short" }).format(now);
+        $("#nriInfo").innerHTML = `
+          <h3>Booking from ${esc(co.name)}</h3>
+          <div class="clock-pair">
+            <div class="clock"><span>Your time</span><strong>${f(tz)}</strong><small>${fd(tz)}</small></div>
+            <div class="clock"><span>India (IST)</span><strong>${f("Asia/Kolkata")}</strong><small>${fd("Asia/Kolkata")}</small></div>
+          </div>
+          <ul class="tick-list">
+            <li>${icon("video")} <span>Online puja is the recommended service for families abroad.</span></li>
+            <li>${icon("truck")} <span>${co.prasadam.available ? `Prasadam to ${esc(co.name)}: <strong>${money(co.prasadam.charge)}</strong> (${U.approx(co.prasadam.charge, co.code)}), ${esc(co.prasadam.days)}` : `Prasadam: ${esc(co.prasadam.days)}`}</span></li>
+            <li>${icon("card")} <span>Pay with international Visa / Mastercard / Amex, PayPal, Apple Pay or Google Pay. Prices in ₹, shown in ${esc(co.currency)} approximately.</span></li>
+            <li>${icon("phone")} <span>WhatsApp support: <a class="link-btn" href="${U.waLink("Namaste, I am an NRI from " + co.name + " and would like help booking an online puja.")}" target="_blank" rel="noopener">${esc(A.DATA.site.phoneDisplay)}</a></span></li>
+          </ul>
+          <a class="btn btn-primary btn-block" href="book.html?mode=online&country=${co.code}">Book an Online Puja ${icon("arrow")}</a>`;
+
+        // Real slots for the next open date, in local time
+        const d = A.nextOpenDates({ mode: "online", count: 1 })[0];
+        if (!d) { $("#nriSlots").innerHTML = `<p class="muted">No slots are open right now. Please contact us on WhatsApp.</p>`; }
+        else {
+          const slots = A.availability({ date: d, mode: "online" });
+          $("#nriSlots").innerHTML = `
+            <p class="hint">${icon("calendar")} Next open date: <strong>${A.fmtDay(d, null, "Asia/Kolkata", true)}</strong> (India). Times below are in your local time.</p>
+            <div class="slot-grid">${slots.map((s) => {
+              const h = A.localHour(d, s.slot, tz);
+              const good = s.available && h >= 6 && h < 22;
+              return `<div class="slot" ${s.available ? "" : "aria-disabled='true' style='opacity:.6;background:var(--cream-2)'"}>
+                <strong>${A.fmtTime(d, s.slot, tz)}</strong><small>${A.fmtDay(A.localDateKey(d, s.slot, tz))}</small>
+                <small>${A.fmtTime(d, s.slot)} IST</small>
+                <span class="slot-status">${s.available ? `${s.pandits.length} Pandits free` : "Booked"}</span>
+                ${good ? `<span class="badge badge-gold">Good time</span>` : ""}</div>`;
+            }).join("")}</div>`;
+        }
+        $$("#nriPujas .btn-primary").forEach((a) => { a.href = a.href.replace(/country=[A-Z]+/, "country=" + code); });
+      }
+
+      $("#nriPujas").innerHTML = A.pujas().filter((p) => p.modes.includes("online")).map((p) => `
+        <article class="card puja-card">
+          ${p.featured ? `<span class="ribbon">Featured</span>` : ""}
+          ${U.media(p)}
+          <div class="card-body">
+            <h3>${esc(p.name)}</h3>
+            <p>${esc(p.short)}</p>
+            <div class="card-price">Online <strong>${money(p.price.online)}</strong> · ${esc(p.duration)}</div>
+            <a class="btn btn-primary btn-block" href="book.html?mode=online&puja=${esc(p.id)}&country=${code}">Book Online</a>
+            <a class="btn btn-link btn-block" href="puja.html?id=${esc(p.id)}">Details ${icon("arrow")}</a>
+          </div>
+        </article>`).join("");
+      $$("#nriPujas .puja-card").forEach((c) => (c.style.position = "relative"));
+
+      $("#shipTable tbody").innerHTML = A.countries().map((c) => `<tr>
+        <td><strong>${esc(c.name)}</strong></td>
+        <td>${c.prasadam.available ? `<span class="badge badge-green">Available</span>` : `<span class="badge badge-red">Not available</span>`}</td>
+        <td>${c.prasadam.available ? money(c.prasadam.charge) + (c.code !== "IN" ? `<small>${U.approx(c.prasadam.charge, c.code)}</small>` : "") : "—"}</td>
+        <td>${esc(c.prasadam.days)}</td></tr>`).join("");
+
+      $("#nriCountry").addEventListener("change", (e) => { code = e.target.value; tz = ""; render(); });
+      $("#nriTz").addEventListener("change", (e) => { tz = e.target.value; render(); });
+      $$("[data-c]").forEach((b) => b.addEventListener("click", () => { code = b.dataset.c; tz = ""; render(); }));
+      render();
+    })();
+  </script>
+</body>
+</html>
