@@ -33,7 +33,7 @@ window.AGNI_DATA = {
     // Where booking requests are sent: paste your Google Apps Script web
     // app link here (see GOOGLE-SHEET-SETUP.md). Until it is set, customers
     // are asked to send their request to you on WhatsApp.
-    bookingEndpoint: "",
+    bookingEndpoint: "https://script.google.com/macros/s/AKfycbzP-iCFASCAFN81YVaA7jjVAPGoswoHLe7_9SqsOqrq19tz9EgMcn4gn96k_DqTevA/exec",
     // How customers can pay (after the puja – no online payment for now)
     paymentOptions: {
       india: ["Cash after the puja", "UPI / bank transfer after the puja"],
