@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agni Puja – Online Puja &amp; Homam Services</title>
+  <meta name="description" content="Agni Puja helps you book experienced Vedic priests for Ganapathi Homam, Lakshmi Pooja, Navagraha Homam, Gruhapravesam, marriage and other Hindu ceremonies.">
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ============ ICON SPRITE ============ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c.6 3.2-1.4 4.9-2.9 6.6C7.6 10.2 6 12 6 14.8 6 18.2 8.7 21 12 21s6-2.8 6-6.2c0-2.4-1-4.1-2.3-5.6-.2 1.5-.9 2.6-2 3.2.4-3.6-.6-7.2-1.7-9.4Zm0 17c-1.7 0-3-1.3-3-3 0-1.4.9-2.3 1.8-3.3.4 1 1.2 1.7 2.2 1.9.1-.6.5-1.2 1-1.6.6.8 1 1.8 1 3 0 1.7-1.3 3-3 3Z"/></symbol>
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3.9 2.5 1 2.7.1.2 1.8 2.8 4.4 3.9 1.6.7 2.3.8 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3Z"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.3 0 .7-.2 1l-2.3 2.2Z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v.5l8 5 8-5V6H4Zm16 2.8-8 5-8-5V18h16V8.8Z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7Z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="currentColor" d="M13.2 5.3 19.9 12l-6.7 6.7-1.4-1.4 4.3-4.3H4v-2h12.1l-4.3-4.3 1.4-1.4Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="currentColor" d="m9.5 16.2-4.2-4.2-1.4 1.4 5.6 5.6 12-12-1.4-1.4z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7l-1.4-1.4L9.2 12 2.9 5.7l1.4-1.4 6.3 6.3 6.3-6.3z" transform="translate(.7)"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></symbol>
+    <symbol id="i-priest" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 10c4.4 0 8 2.2 8 5v3H4v-3c0-2.8 3.6-5 8-5Zm-1 3v3h2v-3h-2Z"/></symbol>
+    <symbol id="i-scroll" viewBox="0 0 24 24"><path fill="currentColor" d="M6 3h11a3 3 0 0 1 3 3v1h-3V6a1 1 0 0 0-1-1H9.8c.1.3.2.6.2 1v12a1 1 0 0 0 2 0v-2h9v2a4 4 0 0 1-4 4H8a3 3 0 0 1-3-3V7H3V6a3 3 0 0 1 3-3Zm6 6h5v2h-5V9Zm0 3h5v2h-5v-2Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm-1.2 14.2-3.5-3.5 1.4-1.4 2.1 2.1 4.8-4.8 1.4 1.4-6.2 6.2Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><path fill="currentColor" d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3V2Zm12 8H5v9h14v-9Zm-8 2h2v2h-2v-2Zm4 0h2v2h-2v-2Zm-8 0h2v2H7v-2Z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2 0 3.4 1.1 4.3 2.4.9-1.3 2.3-2.4 4.3-2.4 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21Z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3 2 11.5l1.3 1.5L5 11.6V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-8.4l1.7 1.4 1.3-1.5L12 3Z"/></symbol>
+    <symbol id="i-cake" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1 1.3 1.5 2.3 1.5 3a1.5 1.5 0 0 1-3 0c0-.7.5-1.7 1.5-3Zm-1 5h2v3h5a2 2 0 0 1 2 2v2.3c-.8.6-1.6.6-2.4 0a3.3 3.3 0 0 0-4 0c-.8.6-1.6.6-2.4 0a3.3 3.3 0 0 0-4 0c-.8.6-1.6.6-2.2 0V12a2 2 0 0 1 2-2h4V7Zm-7 9.6c1.4.8 3 .8 4.2-.2.6-.4 1-.4 1.6 0 1.4 1 3 1 4.4 0 .6-.4 1-.4 1.6 0 1.2 1 2.8 1 4.2.2V21H4v-4.4Z"/></symbol>
+    <symbol id="i-rings" viewBox="0 0 24 24"><path fill="currentColor" d="M8.5 8a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm0 2a4 4 0 0 1 1.6 7.7 6 6 0 0 1 0-7.4l-1.6-.3Zm7-2a6 6 0 0 0-3.4 1 6 6 0 0 1 1.3 1.8A4 4 0 1 1 15.5 18a6 6 0 0 1-1.6 1.8A6 6 0 1 0 15.5 8ZM10 2h5l-1.3 3h-2.4L10 2Z"/></symbol>
+    <symbol id="i-shop" viewBox="0 0 24 24"><path fill="currentColor" d="M4 3h16l1.5 5a3 3 0 0 1-5.2 2.4 3 3 0 0 1-4.3.3 3 3 0 0 1-4.3-.3A3 3 0 0 1 2.5 8L4 3Zm1 9.8c1 .4 2 .4 3 0 1.2.6 2.8.6 4 0 1.2.6 2.8.6 4 0 1 .4 2 .4 3 0V21H5v-8.2ZM10 15v4h4v-4h-4Z"/></symbol>
+    <symbol id="i-diya" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c.9 1.6 2 2.9 2 4.6a2 2 0 0 1-4 0C10 4.9 11.1 3.6 12 2ZM2 12h20c0 4-4 7-10 7S2 16 2 12Zm4 8h12v2H6v-2Z"/></symbol>
+    <symbol id="i-family" viewBox="0 0 24 24"><path fill="currentColor" d="M7 3a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm10 0a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM4 10h6l-1 6v5H5v-5l-1-6Zm10 0h6l-1 6h-1v5h-2v-5h-1l-1-6Zm-2 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4Zm-1.5 5h3v3h-3v-3Z"/></symbol>
+    <symbol id="i-facebook" viewBox="0 0 24 24"><path fill="currentColor" d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.8c0-.9.3-1.5 1.6-1.5h1.7V3.4c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v2.4H7.6V13h2.8v8h3.1Z"/></symbol>
+    <symbol id="i-instagram" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4Zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0ZM21 8c0-1.6-.4-3-1.6-4.2C18.2 2.6 16.8 2.2 15.2 2.1H8.8C7.2 2.2 5.8 2.6 4.6 3.8 3.4 5 3 6.4 3 8v8c0 1.6.4 3 1.6 4.2 1.2 1.2 2.6 1.6 4.2 1.7h6.4c1.6-.1 3-.5 4.2-1.7 1.2-1.2 1.6-2.6 1.6-4.2V8Zm-2.1 9.8a3 3 0 0 1-1.7 1.7c-1.2.5-4 .4-5.2.4s-4 .1-5.2-.4a3 3 0 0 1-1.7-1.7c-.5-1.2-.4-4-.4-5.3s-.1-4 .4-5.2a3 3 0 0 1 1.7-1.7c1.2-.5 4-.4 5.2-.4s4-.1 5.2.4a3 3 0 0 1 1.7 1.7c.5 1.2.4 4 .4 5.2s.1 4.1-.4 5.3Z"/></symbol>
+    <symbol id="i-youtube" viewBox="0 0 24 24"><path fill="currentColor" d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></symbol>
+  </svg>
+
+  <!-- ============ HEADER ============ -->
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="#home" class="brand" aria-label="Agni Puja home">
+        <img src="images/logo.svg" alt="" width="40" height="40">
+        <span class="brand-text">
+          <span class="brand-name">Agni Puja</span>
+          <span class="brand-tag">Online Puja Services</span>
+        </span>
+      </a>
+
+      <nav class="main-nav" id="mainNav" aria-label="Main">
+        <a href="#home" class="active">Home</a>
+        <a href="#pujas">All Pujas</a>
+        <a href="#homams">Homams</a>
+        <a href="#about">About Us</a>
+        <a href="#contact">Contact</a>
+        <button class="btn btn-primary nav-cta-mobile" data-enquire>Enquire Now</button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-primary header-cta" data-enquire>Enquire Now</button>
+        <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="mainNav">
+          <svg><use href="#i-menu"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="home">
+      <div class="hero-bg" role="img" aria-label="Sacred fire burning in a traditional homam kundam"></div>
+      <div class="container hero-content">
+        <p class="eyebrow eyebrow-light"><svg><use href="#i-flame"/></svg> Vedic Pujas &amp; Homams</p>
+        <h1>Bring Divine Blessings Into Your Home</h1>
+        <p class="hero-sub">
+          Book experienced Vedic priests for homams, pujas and family ceremonies – performed at your home
+          with authentic rituals, proper muhurtham and complete puja arrangements.
+        </p>
+        <div class="hero-buttons">
+          <a href="#pujas" class="btn btn-primary btn-lg">Explore Pujas</a>
+          <button class="btn btn-outline-light btn-lg" data-enquire>Book a Puja</button>
+        </div>
+        <ul class="hero-trust">
+          <li><svg><use href="#i-check"/></svg> Experienced Vedic priests</li>
+          <li><svg><use href="#i-check"/></svg> Samagri arranged for you</li>
+          <li><svg><use href="#i-check"/></svg> Tamil, Telugu, Kannada &amp; Hindi</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ BROWSE PUJAS ============ -->
+    <section class="section" id="pujas">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Our Services</p>
+          <h2>Browse Pujas by Category</h2>
+          <p>Choose from our most requested pujas, homams and ceremonies. Tap any card to learn more.</p>
+        </div>
+
+        <div class="filters" role="tablist" aria-label="Filter pujas">
+          <button class="chip active" data-filter="all" role="tab" aria-selected="true">All</button>
+          <button class="chip" data-filter="homam" role="tab" aria-selected="false">Homams</button>
+          <button class="chip" data-filter="pooja" role="tab" aria-selected="false">Poojas</button>
+          <button class="chip" data-filter="ceremony" role="tab" aria-selected="false">Ceremonies</button>
+        </div>
+
+        <div class="card-grid" id="pujaGrid"><!-- filled by js/main.js --></div>
+      </div>
+    </section>
+
+    <!-- ============ POPULAR HOMAMS ============ -->
+    <section class="section section-tint" id="homams">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Sacred Fire Rituals</p>
+          <h2>Popular Homams</h2>
+          <p>Homams are powerful fire rituals where offerings are made to Agni with Vedic mantras. These are the ones families ask for most.</p>
+        </div>
+        <div class="homam-list" id="homamList"><!-- filled by js/main.js --></div>
+      </div>
+    </section>
+
+    <!-- ============ WHY CHOOSE ============ -->
+    <section class="section" id="why">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Our Promise</p>
+          <h2>Why Choose Agni Puja?</h2>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <span class="feature-icon"><svg><use href="#i-priest"/></svg></span>
+            <h3>Experienced Vedic Priests</h3>
+            <p>Trained in Vedic pathashalas, with years of experience performing pujas for families.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon"><svg><use href="#i-flame"/></svg></span>
+            <h3>Traditional Rituals</h3>
+            <p>Every ritual follows the time-honoured customs of your family and region.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon"><svg><use href="#i-scroll"/></svg></span>
+            <h3>Authentic Procedures</h3>
+            <p>Correct mantras, sankalpam and vidhi – nothing skipped, nothing rushed.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon"><svg><use href="#i-calendar"/></svg></span>
+            <h3>Convenient Booking</h3>
+            <p>Enquire online or on WhatsApp. We help you fix the date and muhurtham.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-icon"><svg><use href="#i-heart"/></svg></span>
+            <h3>Personalised Arrangements</h3>
+            <p>Samagri, flowers and prasadam arranged to suit your home and budget.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="section section-maroon" id="how">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow eyebrow-light">Simple &amp; Clear</p>
+          <h2>How It Works</h2>
+        </div>
+        <ol class="steps">
+          <li><span class="step-num">1</span><h3>Explore</h3><p>Browse our available pujas and homams.</p></li>
+          <li><span class="step-num">2</span><h3>Select</h3><p>Choose the puja that suits your occasion.</p></li>
+          <li><span class="step-num">3</span><h3>Enquire</h3><p>Submit a short enquiry form or message us.</p></li>
+          <li><span class="step-num">4</span><h3>We Call You</h3><p>Our team contacts you to discuss the details.</p></li>
+          <li><span class="step-num">5</span><h3>Confirm</h3><p>Fix the date, priest and arrangements.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ OCCASIONS ============ -->
+    <section class="section" id="occasions">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">For Every Milestone</p>
+          <h2>Pujas for Special Occasions</h2>
+          <p>Not sure which puja to choose? Start with your occasion and we'll guide you.</p>
+        </div>
+        <div class="occasion-grid" id="occasionGrid"><!-- filled by js/main.js --></div>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section class="section section-tint" id="about">
+      <div class="container about">
+        <div class="about-media">
+          <img src="images/about.jpg" alt="Home puja altar with brass lamps, flowers and a decorated plate" loading="lazy">
+          <div class="about-badge">
+            <strong>15+</strong>
+            <span>years serving families</span>
+          </div>
+        </div>
+        <div class="about-text">
+          <p class="eyebrow">About Agni Puja</p>
+          <h2>Keeping Sacred Traditions Simple for Modern Families</h2>
+          <p>
+            Agni Puja was started to make it easy for families to perform pujas and homams the right way,
+            even with busy schedules or when living far from their hometown. We connect you with trusted,
+            experienced Vedic priests who perform each ritual with devotion and care.
+          </p>
+          <p>
+            From a simple Satyanarayana Pooja to a full Gruhapravesam or wedding, we take care of the
+            priest, the muhurtham and the puja samagri – so you can focus on the blessings.
+          </p>
+          <ul class="about-stats">
+            <li><strong>5,000+</strong><span>Pujas performed</span></li>
+            <li><strong>120+</strong><span>Vedic priests</span></li>
+            <li><strong>25+</strong><span>Cities served</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TESTIMONIALS ============ -->
+    <section class="section" id="testimonials">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Kind Words</p>
+          <h2>What Families Say</h2>
+        </div>
+        <div class="testimonial-grid" id="testimonialGrid"><!-- filled by js/main.js --></div>
+      </div>
+    </section>
+
+    <!-- ============ CTA BAND ============ -->
+    <section class="cta-band">
+      <div class="container cta-inner">
+        <div>
+          <h2>Planning a puja or homam?</h2>
+          <p>Tell us your occasion and preferred date. We'll call you back within a few hours.</p>
+        </div>
+        <div class="cta-buttons">
+          <button class="btn btn-primary btn-lg" data-enquire>Enquire Now</button>
+          <a class="btn btn-whatsapp btn-lg" data-whatsapp href="#"><svg><use href="#i-whatsapp"/></svg> WhatsApp Us</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="site-footer" id="contact">
+    <div class="container footer-grid">
+      <div class="footer-col footer-about">
+        <a href="#home" class="brand brand-footer">
+          <img src="images/logo.svg" alt="" width="40" height="40">
+          <span class="brand-text">
+            <span class="brand-name">Agni Puja</span>
+            <span class="brand-tag">Online Puja Services</span>
+          </span>
+        </a>
+        <p>Trusted Vedic priests for pujas, homams and family ceremonies, performed with devotion at your home.</p>
+        <div class="social" id="socialLinks">
+          <a href="#" data-social="facebook" aria-label="Facebook" target="_blank" rel="noopener"><svg><use href="#i-facebook"/></svg></a>
+          <a href="#" data-social="instagram" aria-label="Instagram" target="_blank" rel="noopener"><svg><use href="#i-instagram"/></svg></a>
+          <a href="#" data-social="youtube" aria-label="YouTube" target="_blank" rel="noopener"><svg><use href="#i-youtube"/></svg></a>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#pujas">All Pujas</a></li>
+          <li><a href="#homams">Homams</a></li>
+          <li><a href="#occasions">Special Occasions</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#" data-enquire>Enquire Now</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Puja Categories</h4>
+        <ul id="footerPujas"><!-- filled by js/main.js --></ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact Us</h4>
+        <ul class="contact-list">
+          <li><svg><use href="#i-phone"/></svg><a data-phone href="#"></a></li>
+          <li><svg><use href="#i-mail"/></svg><a data-email href="#"></a></li>
+          <li><svg><use href="#i-pin"/></svg><span data-address></span></li>
+          <li><svg><use href="#i-clock"/></svg><span data-hours></span></li>
+        </ul>
+        <a class="btn btn-whatsapp" data-whatsapp href="#"><svg><use href="#i-whatsapp"/></svg> Chat on WhatsApp</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <p>© <span id="year"></span> Agni Puja. All rights reserved.</p>
+        <p>Made with devotion in India · <a href="images/CREDITS.md" target="_blank" rel="noopener">Photo credits</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating WhatsApp button -->
+  <a class="whatsapp-float" data-whatsapp href="#" aria-label="Chat with us on WhatsApp">
+    <svg><use href="#i-whatsapp"/></svg>
+  </a>
+
+  <!-- ============ PUJA DETAILS MODAL ============ -->
+  <div class="modal" id="detailsModal" role="dialog" aria-modal="true" aria-labelledby="detailsTitle" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel modal-details">
+      <button class="modal-close" data-close aria-label="Close"><svg><use href="#i-close"/></svg></button>
+      <div class="details-media media" id="detailsMedia"></div>
+      <div class="details-body">
+        <span class="tag" id="detailsType"></span>
+        <h3 id="detailsTitle"></h3>
+        <p id="detailsDesc"></p>
+        <div class="details-meta">
+          <div><span>Duration</span><strong id="detailsDuration"></strong></div>
+          <div><span>Ideal for</span><strong id="detailsIdeal"></strong></div>
+        </div>
+        <h4>Benefits</h4>
+        <ul class="benefits" id="detailsBenefits"></ul>
+        <div class="details-actions">
+          <button class="btn btn-primary" id="detailsEnquire">Enquire for this Puja</button>
+          <a class="btn btn-whatsapp" id="detailsWhatsapp" href="#" target="_blank" rel="noopener"><svg><use href="#i-whatsapp"/></svg> WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ENQUIRY MODAL ============ -->
+  <div class="modal" id="enquiryModal" role="dialog" aria-modal="true" aria-labelledby="enquiryTitle" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel modal-form">
+      <button class="modal-close" data-close aria-label="Close"><svg><use href="#i-close"/></svg></button>
+
+      <div id="enquiryFormWrap">
+        <h3 id="enquiryTitle">Puja Enquiry</h3>
+        <p class="modal-intro">Share a few details and our team will call you to plan your puja.</p>
+        <form id="enquiryForm" novalidate>
+          <div class="form-row">
+            <label>Your name <span aria-hidden="true">*</span>
+              <input type="text" name="name" required autocomplete="name" placeholder="e.g. Ramesh Kumar">
+            </label>
+            <label>Phone number <span aria-hidden="true">*</span>
+              <input type="tel" name="phone" required autocomplete="tel" placeholder="10-digit mobile number" pattern="[0-9+\s\-]{10,15}">
+            </label>
+          </div>
+          <div class="form-row">
+            <label>Puja / Homam <span aria-hidden="true">*</span>
+              <select name="puja" id="pujaSelect" required></select>
+            </label>
+            <label>Preferred date
+              <input type="date" name="date">
+            </label>
+          </div>
+          <div class="form-row">
+            <label>City / Location <span aria-hidden="true">*</span>
+              <input type="text" name="city" required autocomplete="address-level2" placeholder="e.g. Chennai">
+            </label>
+            <label>Email (optional)
+              <input type="email" name="email" autocomplete="email" placeholder="you@example.com">
+            </label>
+          </div>
+          <label>Message (optional)
+            <textarea name="message" rows="3" placeholder="Occasion, preferred language, any special requirements…"></textarea>
+          </label>
+          <p class="form-error" id="formError" role="alert" hidden>Please fill in your name, a valid phone number, puja and city.</p>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" data-send="whatsapp"><svg><use href="#i-whatsapp"/></svg> Send via WhatsApp</button>
+            <button type="submit" class="btn btn-outline" data-send="email"><svg><use href="#i-mail"/></svg> Send via Email</button>
+          </div>
+          <p class="form-note">No payment needed now. We'll confirm all details with you on call.</p>
+        </form>
+      </div>
+
+      <div class="form-success" id="formSuccess" hidden>
+        <span class="success-icon"><svg><use href="#i-check"/></svg></span>
+        <h3>Thank you!</h3>
+        <p>Your enquiry is ready to send. Once we receive it, our team will contact you shortly to plan your puja.</p>
+        <button class="btn btn-primary" data-close>Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/pujas-data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
