@@ -43,6 +43,9 @@ Customers can book pujas in two ways:
 - **Cities for home visits, countries for NRIs, time slots, refund rules:** these are also in `js/pujas-data.js`.
 - **Contact details:** edit the `site` block at the top of `js/pujas-data.js`.
 - **Today's Panchang** (below the hero): tithi, nakshatram, yoga, sunrise and sunset, Rahu Kalam, Yamagandam, Gulika, Nalla Neram (the good Gowri Panchangam periods, leaving out Rahu Kalam and Yamagandam), the Tamil date, today's special day and the upcoming ones. It is calculated in the browser by `js/panchang.js` for the location in `site.panchangLocation`, and was checked against Drik Panchang for Chennai (within 1–2 minutes). Add `?panchang=2026-12-08` to the homepage address to preview another day.
+- **Chandrashtamam** is shown in the panchang: the rasi (and its stars) for which the moon is in the 8th house, with the change time.
+- **Share Panchang** (admin panel → Share Panchang): makes a branded image and a WhatsApp message of any day's panchang, with special days and your website link, to send to a customer. The address printed on it is `site.websiteUrl`.
+- **After changing CSS or JS files:** update the `?v=20261126` number in the HTML pages so visitors' browsers load the new files.
 - **Show or hide prices:** `showPrices` in the `site` block. It is `false` for now, so customers see no amounts and the price is confirmed on the call. The admin panel always shows prices. Set it to `true` to show prices on the website again.
 - **Photos:** put a photo in `images/` and set the puja's `image` to its path. A puja without a photo shows the saffron flame design. Credit any Wikimedia photo in `images/CREDITS.md`.
 

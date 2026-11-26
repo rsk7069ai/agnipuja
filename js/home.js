@@ -111,7 +111,14 @@
         ${item("Yamagandam", range(d.yamagandam), "", "pg-time")}
         ${item("Gulika", range(d.gulika), "", "pg-time")}
       </div>
-      ${d.nallaNeram.length ? `<div class="pg-nalla">
+      ${!d.chandrashtamam ? "" : (() => {
+        const c = d.chandrashtamam, stars = (x) => x.stars.map(esc).join(" · ");
+        return `<div class="pg-nalla pg-ashtama">
+          <span class="pg-nalla-label">${icon("info")} Chandrashtamam</span>
+          <span class="pg-ashtama-text"><strong>${esc(c.rasi)}</strong> – ${stars(c)}${c.end ? ` <em>${till(c.end)}</em>` : ""}${c.next ? `<br>then <strong>${esc(c.next.rasi)}</strong> – ${stars(c.next)}` : ""}</span>
+        </div>`;
+      })()}
+      ${(d.nallaNeram || []).length ? `<div class="pg-nalla">
         <span class="pg-nalla-label">${icon("check")} Nalla Neram</span>
         <span class="pg-nalla-times">${d.nallaNeram.map((p) => `<strong>${range(p)}</strong>`).join("")}</span>
         <small>Good times from the Gowri Panchangam, avoiding Rahu Kalam and Yamagandam</small>

@@ -11,7 +11,8 @@
   const TABS = [
     ["overview", "Reports", "chart"], ["bookings", "Bookings", "calendar"], ["pandits", "Pandits", "priest"],
     ["cities", "Locations", "pin"], ["pujas", "Puja Services", "flame"], ["customers", "Customers", "users"],
-    ["payments", "Payments", "card"], ["shipping", "Prasadam Shipping", "truck"], ["notify", "Notifications", "bell"]
+    ["payments", "Payments", "card"], ["shipping", "Prasadam Shipping", "truck"], ["notify", "Notifications", "bell"],
+    ["share", "Share Panchang", "whatsapp"]
   ];
   const ui = { q: "", type: "all", status: "all" };
 
@@ -471,7 +472,13 @@
     }
   });
 
-  function render() { nav(); $("#adminMain").innerHTML = V[tab()](); }
+  V.share = () => head("Share Panchang", "Make an image and a WhatsApp message of the day's panchang to send to a customer.") + `<div id="shareRoot"></div>`;
+
+  function render() {
+    nav();
+    $("#adminMain").innerHTML = V[tab()]();
+    if (tab() === "share" && window.AgniShare) window.AgniShare.mount($("#shareRoot"), A.istToday());
+  }
   window.addEventListener("hashchange", () => { ui.q = ""; render(); });
   render();
 })();

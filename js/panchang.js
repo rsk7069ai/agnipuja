@@ -78,6 +78,7 @@
   const nakshatraIndex = (jd) => Math.floor(sidereal(moonLongitude(jd), jd) / (360 / 27)); // 0–26
   const yogaIndex = (jd) => Math.floor(norm(sidereal(sunLongitude(jd), jd) + sidereal(moonLongitude(jd), jd)) / (360 / 27));
   const sunSign = (jd) => Math.floor(sidereal(sunLongitude(jd), jd) / 30); // 0 = Mesha
+  const moonRasi = (jd) => Math.floor(sidereal(moonLongitude(jd), jd) / 30);
 
   // When does fn(jd) change from its current value? (search up to `hours` ahead)
   function nextChange(jd, fn, hours = 32) {
@@ -108,6 +109,20 @@
   const tithiName = (i) => i === 14 ? "Pournami" : i === 29 ? "Amavasya" : (i < 15 ? "Shukla " : "Krishna ") + TITHI[i % 15];
   const NAKSHATRA = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Thiruvathirai (Ardra)", "Punarvasu", "Pushya (Poosam)", "Ashlesha (Ayilyam)", "Magha", "Purva Phalguni (Pooram)", "Uttara Phalguni (Uthiram)", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha (Kettai)", "Moola", "Purva Ashadha (Pooradam)", "Uttara Ashadha (Uthiradam)", "Shravana (Thiruvonam)", "Dhanishta (Avittam)", "Shatabhisha (Sadhayam)", "Purva Bhadrapada (Poorattathi)", "Uttara Bhadrapada (Uthirattathi)", "Revati"];
   const YOGA = ["Vishkambha", "Priti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda", "Sukarma", "Dhriti", "Shoola", "Ganda", "Vriddhi", "Dhruva", "Vyaghata", "Harshana", "Vajra", "Siddhi", "Vyatipata", "Variyan", "Parigha", "Shiva", "Siddha", "Sadhya", "Shubha", "Shukla", "Brahma", "Indra", "Vaidhriti"];
+  const RASI = ["Mesham", "Rishabam", "Mithunam", "Kadagam", "Simmam", "Kanni", "Thulam", "Viruchigam", "Dhanusu", "Magaram", "Kumbam", "Meenam"];
+  // Short star names for lists – the Tamil name where one is given
+  const STAR = NAKSHATRA.map((n) => (n.match(/\(([^)]+)\)/) || [null, n])[1]);
+  // Stars (with padas) that make up a rasi: each rasi is 9 padas
+  function rasiStars(r) {
+    const byStar = {};
+    for (let g = r * 9; g < r * 9 + 9; g++) (byStar[Math.floor(g / 4)] = byStar[Math.floor(g / 4)] || []).push((g % 4) + 1);
+    return Object.keys(byStar).map(Number).map((k) => {
+      const p = byStar[k];
+      return p.length === 4 ? STAR[k] : `${STAR[k]} ${p.length === 1 ? p[0] : p.length === 2 ? p.join(", ") : p[0] + "–" + p[p.length - 1]}`;
+    });
+  }
+  // Chandrashtamam: people whose birth rasi has the moon in its 8th house
+  const ashtamaRasi = (moon) => (moon + 5) % 12; // moon rasi = birth rasi + 7
   const TAMIL_MONTH = ["Chithirai", "Vaikasi", "Aani", "Aadi", "Aavani", "Purattasi", "Aippasi", "Karthigai", "Margazhi", "Thai", "Maasi", "Panguni"];
   const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   // Which eighth of the daytime each period falls in, by weekday (Sunday first)
@@ -183,6 +198,10 @@
       if (last && Math.abs(last.end - p.start) < 1e-6) { last.end = p.end; last.names.push(g); }
       else nallaNeram.push({ start: p.start, end: p.end, names: [g] });
     });
+    // Chandrashtamam at sunrise, and the change if it happens before the next sunrise
+    const mr = moonRasi(s.rise), mrEnd = nextChange(s.rise, moonRasi, 64);
+    const chandra = { rasi: RASI[ashtamaRasi(mr)], stars: rasiStars(ashtamaRasi(mr)), moonRasi: RASI[mr], end: mrEnd };
+    if (mrEnd && mrEnd < s.rise + 1) chandra.next = { rasi: RASI[ashtamaRasi((mr + 1) % 12)], stars: rasiStars(ashtamaRasi((mr + 1) % 12)) };
     const ti = tithiIndex(s.rise), na = nakshatraIndex(s.rise), yo = yogaIndex(s.rise);
     const tiEnd = nextChange(s.rise, tithiIndex), naEnd = nextChange(s.rise, nakshatraIndex), yoEnd = nextChange(s.rise, yogaIndex);
     return {
@@ -191,7 +210,7 @@
       nakshatra: { name: NAKSHATRA[na], end: naEnd, next: NAKSHATRA[(na + 1) % 27] },
       yoga: { name: YOGA[yo], end: yoEnd },
       rahu: period(RAHU[wd]), yamagandam: period(YAMA[wd]), gulika: period(GULIKA[wd]),
-      nallaNeram, gowri: GOWRI[wd].map((name, i) => Object.assign({ name, good: GOWRI_GOOD.includes(name) }, period(i + 1))),
+      chandrashtamam: chandra, nallaNeram, gowri: GOWRI[wd].map((name, i) => Object.assign({ name, good: GOWRI_GOOD.includes(name) }, period(i + 1))),
       tamil: tamilDate(ymd, loc),
       specials: specialsOn(ymd, loc)
     };

@@ -127,6 +127,12 @@ fieldset.group legend { font: 700 1.15rem var(--font-head); color: var(--maroon)
   background: var(--white); border: 1px solid #cfe9d7; border-radius: 999px; padding: .2em .8em; white-space: nowrap;
 }
 .pg-nalla small { flex-basis: 100%; font-size: .74rem; color: var(--ink-soft); }
+/* Chandrashtamam: same row style, in amber */
+.pg-ashtama { background: #fff6e8; border-color: #f2d7a6; }
+.pg-ashtama .pg-nalla-label { color: #9a5a00; }
+.pg-ashtama-text { flex: 1; min-width: 200px; font-size: .9rem; color: var(--ink); line-height: 1.5; }
+.pg-ashtama-text strong { color: var(--maroon); font-weight: 600; }
+.pg-ashtama-text em { font-style: normal; color: var(--ink-soft); font-size: .82rem; }
 /* Timings in the body font: clearer numbers than the heading font */
 .pg-item.pg-time strong { font-family: var(--font-body); font-weight: 600; font-size: .98rem; font-variant-numeric: tabular-nums; letter-spacing: -.01em; margin-top: 4px; }
 .pg-item small { display: block; font-size: .76rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.35; }
@@ -568,3 +574,12 @@ h1, h2, h3, h4 { overflow-wrap: anywhere; }
 .translated-ltr .service-card h3 { font-size: 1.5rem; }
 .translated-ltr .brand-name { font-size: 1.3rem; }
 .translated-ltr .brand-tag { letter-spacing: .04em; }
+
+/* ---------- Admin: Share Panchang ---------- */
+.share-layout { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.share-preview canvas { width: 100%; height: auto; display: block; border-radius: var(--radius); box-shadow: var(--shadow-lg); background: var(--cream-2); }
+.share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.share-actions .btn { white-space: normal; text-align: center; }
+.share-side textarea { font-size: .85rem; line-height: 1.5; }
+@media (max-width: 920px) { .share-layout { grid-template-columns: 1fr; } .share-preview { max-width: 440px; margin: 0 auto; width: 100%; } }
+@media (max-width: 640px) { .share-actions { grid-template-columns: 1fr; } }
