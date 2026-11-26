@@ -56,7 +56,7 @@
 
   /* ---------- Mobile OTP ---------- */
   const dial = $("#dialSelect");
-  dial.innerHTML = A.countries().map((c) => `<option value="${c.dial}">${c.dial} ${c.code}</option>`).join("");
+  dial.innerHTML = A.countries().filter((c) => c.dial).map((c) => `<option value="${c.dial}">${c.dial} ${c.code}</option>`).join("");
   let phoneFull = "", timer = null;
 
   function startResendTimer() {

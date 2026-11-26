@@ -88,6 +88,50 @@ fieldset.group legend { font: 700 1.15rem var(--font-head); color: var(--maroon)
 .crumbs a:hover { color: var(--white); text-decoration: underline; }
 .section-sm { padding: 56px 0; }
 
+/* ---------- Homepage: Today's Panchang ---------- */
+.panchang-band { background: var(--cream-2); padding: 0 0 48px; }
+.panchang {
+  position: relative; margin-top: -40px; background: var(--white); border-radius: var(--radius);
+  border: 1px solid var(--line); border-top: 3px solid var(--gold); box-shadow: var(--shadow-lg); padding: 26px 28px 20px;
+}
+.pg-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+.pg-head .eyebrow { margin-bottom: .3em; }
+.pg-head .eyebrow::before { display: none; }
+.pg-head h2 { font-size: clamp(1.6rem, 3vw, 2rem); margin: 0; }
+.pg-sub { margin: 2px 0 0; color: var(--saffron-dark); font-weight: 500; font-size: .92rem; }
+.pg-controls { display: flex; align-items: center; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.pg-controls .input { width: auto; min-height: 38px; padding: .4em .7em; font-size: .9rem; }
+.pg-controls .icon-btn { width: 38px; height: 38px; }
+.pg-controls .icon-btn[disabled] { opacity: .4; cursor: not-allowed; }
+.pg-special {
+  position: relative; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; max-width: 520px;
+  padding: 22px 18px 14px; border-radius: var(--radius-sm); background: linear-gradient(115deg, #fff6e8, var(--gold-soft)); border: 1px solid #ecd39a;
+}
+.pg-special .ribbon { top: -11px; left: 14px; }
+.pg-special div { flex: 1; min-width: 180px; }
+.pg-special strong { font: 700 1.3rem/1.2 var(--font-head); color: var(--maroon); }
+.pg-special p { margin: 2px 0 0; font-size: .86rem; color: var(--ink-soft); }
+.pg-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+.pg-item { background: var(--cream); border-radius: var(--radius-sm); padding: 12px 14px; border: 1px solid rgba(234, 223, 206, .8); }
+.pg-item span { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.pg-item strong { display: block; font: 700 1.12rem/1.25 var(--font-head); color: var(--maroon); margin-top: 2px; }
+.pg-item.pg-time strong { white-space: nowrap; font-size: 1.05rem; }
+.pg-item small { display: block; font-size: .76rem; color: var(--ink-soft); margin-top: 2px; line-height: 1.35; }
+.pg-next { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.pg-next > span { white-space: nowrap; flex-shrink: 0; font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--saffron-dark); margin-right: 4px; }
+.pg-next .chip { font-size: .82rem; padding: .45em 1em; }
+.pg-next .chip strong { color: var(--maroon); font-weight: 600; margin-right: 4px; }
+.pg-note { margin: 12px 0 0; font-size: .78rem; }
+@media (max-width: 1080px) { .pg-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 640px) {
+  .panchang { padding: 20px 16px 16px; margin-top: -28px; }
+  .pg-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pg-item:first-child { grid-column: 1 / -1; }
+  .pg-special { max-width: none; width: 100%; }
+  .pg-next { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .pg-next .chip { flex-shrink: 0; }
+}
+
 /* ---------- Homepage: two service categories ---------- */
 .service-split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .service-card { display: flex; flex-direction: column; }
@@ -103,6 +147,11 @@ fieldset.group legend { font: 700 1.15rem var(--font-head); color: var(--maroon)
 .price-from { font-size: .88rem; color: var(--ink-soft); margin: -6px 0 14px; }
 .price-from strong { color: var(--maroon); font-size: 1.05rem; }
 
+/* Prices switched off in js/pujas-data.js (site.showPrices: false) */
+.hide-prices .price-from, .hide-prices .price-table, .hide-prices .price-approx,
+.hide-prices [data-price] { display: none !important; }
+/* Keep the faces in view when this photo is cropped to a wide card */
+.media img[src$="upanayanam.jpg"] { object-position: center top; }
 .card-price { font-size: .85rem; color: var(--ink-soft); margin: -4px 0 14px; }
 .card-price strong { color: var(--maroon); }
 

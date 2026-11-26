@@ -111,7 +111,7 @@
     const shown = list.filter((p) => filter === "all" || (filter === "featured" ? p.featured : p.type === filter));
     return `<div class="panel">
       <h2>Select your puja</h2>
-      <p class="panel-intro">${S.mode === "online" ? "Pujas available as a live online puja." : "Pujas our Pandits perform at your home."} Prices include the Pandit's dakshina.</p>
+      <p class="panel-intro">${S.mode === "online" ? "Pujas available as a live online puja." : "Pujas our Pandits perform at your home."} ${U.showPrices ? "Prices include the Pandit's dakshina." : "We confirm the price with you on the call."}</p>
       <div class="filters" style="margin:0 0 18px;justify-content:flex-start">
         ${[["all", "All"], ["featured", "Featured"], ["homam", "Homams"], ["pooja", "Poojas"], ["ceremony", "Ceremonies"]]
           .map(([k, l]) => `<button type="button" class="chip${filter === k ? " active" : ""}" data-filter="${k}">${l}</button>`).join("")}
@@ -119,7 +119,7 @@
       <div class="pick-grid">
         ${shown.map((p) => `<button type="button" class="pick${p.id === S.pujaId ? " selected" : ""}" data-puja="${esc(p.id)}" aria-pressed="${p.id === S.pujaId}">
           ${p.featured ? `<span class="ribbon">Featured</span>` : ""}${U.media(p)}
-          <span class="pick-body"><strong>${esc(p.name)}</strong><span>${esc(p.duration)}</span><span><b>${money(p.price[S.mode])}</b></span></span>
+          <span class="pick-body"><strong>${esc(p.name)}</strong><span>${esc(p.duration)}</span><span data-price><b>${money(p.price[S.mode])}</b></span></span>
         </button>`).join("") || `<p class="muted">No pujas in this category.</p>`}
       </div>
       <div class="wizard-nav">
@@ -201,7 +201,7 @@
           </div>
           ${co.code !== "IN" ? `<p class="notice notice-ok">${icon("globe")}<span>Time slots will be shown in your local time. You can pay after the puja by bank transfer, or your family in India can pay us.</span></p>` : ""}
           <label class="check"><input type="checkbox" name="prasadam" ${S.prasadam && co.prasadam.available ? "checked" : ""} ${co.prasadam.available ? "" : "disabled"}>
-            <span><strong>Ship Prasadam to me</strong> – ${co.prasadam.available ? `${money(co.prasadam.charge)} to ${esc(co.name)}, ${esc(co.prasadam.days)} after the puja` : esc(co.prasadam.days)}</span></label>
+            <span><strong>Ship Prasadam to me</strong> – ${co.other ? "we confirm delivery to your country on the call" : co.prasadam.available ? `${U.showPrices ? money(co.prasadam.charge) + " " : ""}to ${esc(co.name)}, ${esc(co.prasadam.days)} after the puja` : esc(co.prasadam.days)}</span></label>
         </div>
       </fieldset>` : `
       <fieldset class="group"><legend>Where should the Pandit come?</legend>
@@ -210,8 +210,8 @@
           ${cityKnownNotServed ? `<p class="notice notice-warn">${icon("info")}<span>We don't send Pandits to ${esc(prof.city)} yet. Choose a nearby city below${p.modes.includes("online") ? `, or <a class="link-btn" href="book.html?mode=online&puja=${esc(p.id)}">book this puja online</a>` : ""}.</span></p>` : ""}
           <label class="field">City <span class="req">*</span>
             <select name="city" required><option value="">Select your city</option>${A.activeCities().map((c) => `<option${c.name === S.city ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
-          ${S.city ? `<p class="hint">${icon("priest")} ${A.pandits().filter((x) => x.active && x.modes.includes("home") && x.cities.includes(S.city)).length} Pandits serve ${esc(S.city)}.${(A.city(S.city) || {}).travel ? ` Travel charge: ${money(A.city(S.city).travel)}.` : " No travel charge."}</p>` : ""}
-          ${p.samagri ? `<label class="check"><input type="checkbox" name="samagri" ${S.samagri ? "checked" : ""}><span><strong>Add puja samagri kit</strong> – ${money(p.samagri)}. Everything for the ritual is brought by the Pandit.</span></label>` : ""}
+          ${S.city ? `<p class="hint">${icon("priest")} ${A.pandits().filter((x) => x.active && x.modes.includes("home") && x.cities.includes(S.city)).length} Pandits serve ${esc(S.city)}.${!U.showPrices ? "" : (A.city(S.city) || {}).travel ? ` Travel charge: ${money(A.city(S.city).travel)}.` : " No travel charge."}</p>` : ""}
+          ${p.samagri ? `<label class="check"><input type="checkbox" name="samagri" ${S.samagri ? "checked" : ""}><span><strong>Add puja samagri kit</strong> – ${U.showPrices ? money(p.samagri) + ". " : ""}Everything for the ritual is brought by the Pandit.</span></label>` : ""}
         </div>
       </fieldset>`}
 
@@ -388,7 +388,7 @@
         ${detailRows || S.instructions || S.language ? `<div class="review-box" style="grid-column:1/-1"><h4>Puja details <button class="link-btn" data-edit="3">Change</button></h4><p>${detailRows}${S.language ? `${detailRows ? "<br>" : ""}Language: ${esc(S.language)}` : ""}${S.instructions ? `<br>Instructions: ${esc(S.instructions)}` : ""}</p></div>` : ""}
       </div>
 
-      <h3>Estimated price</h3>
+      <h3 data-price>Estimated price</h3>
       <table class="price-table">${q.lines.map((l) => `<tr><td>${esc(l.label)}${l.note ? `<small>${esc(l.note)}</small>` : ""}</td><td>${money(l.amount)}</td></tr>`).join("")}
         <tr class="total"><td>Estimated total</td><td>${money(q.total)}</td></tr></table>
       ${intl ? `<p class="price-approx">${U.approx(q.total, co.code)}</p>` : ""}
@@ -455,7 +455,7 @@
 
       <div class="review-grid">
         <div class="review-box"><h4>${esc(b.pujaName)}</h4><p>${b.mode === "online" ? "Live online puja" : "Pandit at your home"}<br>Preferred: ${A.fmtDay(b.date, b.slot, btz, true)}, <strong>${A.fmtTime(b.date, b.slot, btz)}</strong>${btz !== "Asia/Kolkata" ? ` your time (${A.fmtTime(b.date, b.slot)} IST)` : " IST"}</p></div>
-        <div class="review-box"><h4>Payment</h4><p>Estimated <strong>${money(b.total)}</strong><br>${esc(b.payment.method)} – nothing to pay now</p></div>
+        <div class="review-box"><h4>Payment</h4><p>${U.showPrices ? `Estimated <strong>${money(b.total)}</strong><br>` : "Price confirmed on the call<br>"}${esc(b.payment.method)} – nothing to pay now</p></div>
         <div class="review-box" style="grid-column:1/-1"><h4>What happens next</h4><p>1. We call you to confirm the date, time, Pandit and final price.<br>
           2. ${b.mode === "online" ? "We send you the live video link for the puja." : "The Pandit visits your home at the confirmed time."}<br>
           3. You pay after the puja${b.prasadam ? ", and we ship the Prasadam to you" : ""}.</p></div>

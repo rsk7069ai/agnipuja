@@ -64,7 +64,7 @@
           ${b.status === "pending" ? `<li>${icon("phone")}<span>We'll call you on ${esc(b.phone)} to confirm.</span></li>` : `<li>${icon("priest")}<span>${esc(pd.name || "Pandit being assigned")}</span></li>`}
           ${b.mode === "home" ? `<li>${icon("pin")}<span>${esc(A.fmtAddress(b.address))}</span></li>` : ""}
           ${live ? `<li>${icon("video")}<span><a class="link-btn" href="${esc(b.meetingLink)}" target="_blank" rel="noopener">${esc(b.meetingLink.replace("https://", ""))}</a></span></li>` : ""}
-          <li>${icon("card")}<span>${money(b.total)} · ${esc(payText(b))}${b.refund ? ` · refund ${money(b.refund)}` : ""} · <small>ID ${b.id}</small></span></li>
+          <li>${icon("card")}<span>${U.showPrices || A.isPaid(b) ? money(b.total) + " · " : ""}${esc(payText(b))}${b.refund ? ` · refund ${money(b.refund)}` : ""} · <small>ID ${b.id}</small></span></li>
         </ul>
         ${b.shipping && b.status !== "cancelled" ? track(b.shipping.status) : ""}
       </div>
@@ -141,7 +141,7 @@
             <td>${A.fmtDay(b.date, b.slot, null, true)}</td>
             <td><strong>${esc(b.pujaName)}</strong><small>${b.id}</small></td>
             <td>${esc(b.payment.method)}</td>
-            <td>${money(b.total)}${b.payment.status === "due" ? "<small>estimate</small>" : ""}${b.refund ? `<small>Refunded ${money(b.refund)}</small>` : ""}</td>
+            <td>${U.showPrices || A.isPaid(b) ? money(b.total) : "Confirmed on call"}${b.payment.status === "due" && U.showPrices ? "<small>estimate</small>" : ""}${b.refund ? `<small>Refunded ${money(b.refund)}</small>` : ""}</td>
             <td><span class="badge ${b.payment.status === "paid" ? "badge-green" : "badge-gold"}">${esc(label[b.payment.status] || b.payment.status)}</span></td></tr>`).join("")}</tbody>
         </table></div>` : empty("No payments yet", "Payments for your bookings will appear here.")}`;
     },

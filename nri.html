@@ -91,7 +91,7 @@
         <div class="section-head"><p class="eyebrow">Shipping</p><h2>International Prasadam Delivery</h2></div>
         <div class="table-wrap">
           <table class="table" id="shipTable">
-            <thead><tr><th>Country</th><th>Prasadam delivery</th><th>Charge</th><th>Time after puja</th></tr></thead>
+            <thead><tr><th>Country</th><th>Prasadam delivery</th><th data-price>Charge</th><th>Time after puja</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
@@ -132,15 +132,15 @@
         const f = (zone) => new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit" }).format(now);
         const fd = (zone) => new Intl.DateTimeFormat("en-GB", { timeZone: zone, weekday: "short", day: "numeric", month: "short" }).format(now);
         $("#nriInfo").innerHTML = `
-          <h3>Booking from ${esc(co.name)}</h3>
+          <h3>${co.other ? "Booking from any other country" : `Booking from ${esc(co.name)}`}</h3>
           <div class="clock-pair">
             <div class="clock"><span>Your time</span><strong>${f(tz)}</strong><small>${fd(tz)}</small></div>
             <div class="clock"><span>India (IST)</span><strong>${f("Asia/Kolkata")}</strong><small>${fd("Asia/Kolkata")}</small></div>
           </div>
           <ul class="tick-list">
             <li>${icon("video")} <span>Online puja is the recommended service for families abroad.</span></li>
-            <li>${icon("truck")} <span>${co.prasadam.available ? `Prasadam to ${esc(co.name)}: <strong>${money(co.prasadam.charge)}</strong> (${U.approx(co.prasadam.charge, co.code)}), ${esc(co.prasadam.days)}` : `Prasadam: ${esc(co.prasadam.days)}`}</span></li>
-            <li>${icon("card")} <span>No online payment. Pay after the puja by bank transfer (from abroad or your NRE/NRO account), or your family in India can pay us. Prices in ₹, shown in ${esc(co.currency)} approximately.</span></li>
+            <li>${icon("truck")} <span>${co.prasadam.available ? `Prasadam to ${esc(co.name)}${U.showPrices ? `: <strong>${money(co.prasadam.charge)}</strong> (${U.approx(co.prasadam.charge, co.code)}),` : " –"} ${esc(co.prasadam.days)}` : `Prasadam: ${esc(co.prasadam.days)}`}</span></li>
+            <li>${icon("card")} <span>No online payment. Pay after the puja by bank transfer (from abroad or your NRE/NRO account), or your family in India can pay us. ${U.showPrices ? `Prices in ₹, shown in ${esc(co.currency)} approximately.` : ""}</span></li>
             <li>${icon("phone")} <span>WhatsApp support: <a class="link-btn" href="${U.waLink("Namaste, I am an NRI from " + co.name + " and would like help booking an online puja.")}" target="_blank" rel="noopener">${esc(A.DATA.site.phoneDisplay)}</a></span></li>
           </ul>
           <a class="btn btn-primary btn-block" href="book.html?mode=online&country=${co.code}">Book an Online Puja ${icon("arrow")}</a>`;
@@ -172,7 +172,7 @@
           <div class="card-body">
             <h3>${esc(p.name)}</h3>
             <p>${esc(p.short)}</p>
-            <div class="card-price">Online <strong>${money(p.price.online)}</strong> · ${esc(p.duration)}</div>
+            <div class="card-price">${U.showPrices ? `Online <strong>${money(p.price.online)}</strong> · ` : ""}${esc(p.duration)}</div>
             <a class="btn btn-primary btn-block" href="book.html?mode=online&puja=${esc(p.id)}&country=${code}">Book Online</a>
             <a class="btn btn-link btn-block" href="puja.html?id=${esc(p.id)}">Details ${icon("arrow")}</a>
           </div>
@@ -182,7 +182,7 @@
       $("#shipTable tbody").innerHTML = A.countries().map((c) => `<tr>
         <td><strong>${esc(c.name)}</strong></td>
         <td>${c.prasadam.available ? `<span class="badge badge-green">Available</span>` : `<span class="badge badge-red">Not available</span>`}</td>
-        <td>${c.prasadam.available ? money(c.prasadam.charge) + (c.code !== "IN" ? `<small>${U.approx(c.prasadam.charge, c.code)}</small>` : "") : "—"}</td>
+        <td data-price>${c.prasadam.available ? money(c.prasadam.charge) + (c.code !== "IN" ? `<small>${U.approx(c.prasadam.charge, c.code)}</small>` : "") : "—"}</td>
         <td>${esc(c.prasadam.days)}</td></tr>`).join("");
 
       $("#nriCountry").addEventListener("change", (e) => { code = e.target.value; tz = ""; render(); });

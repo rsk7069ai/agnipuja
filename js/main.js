@@ -31,7 +31,8 @@
     const prices = (p.modes || []).map((m) => (p.price || {})[m]).filter(Boolean);
     if (!prices.length) return "";
     const modes = (p.modes || []).map((m) => (m === "online" ? "Online" : "At home")).join(" & ");
-    return `<div class="card-price">From <strong>₹${Math.min(...prices).toLocaleString("en-IN")}</strong> · ${modes}</div>`;
+    const showPrices = !window.AgniUI || window.AgniUI.showPrices;
+    return `<div class="card-price">${showPrices ? `From <strong>₹${Math.min(...prices).toLocaleString("en-IN")}</strong> · ` : ""}${modes}</div>`;
   }
 
   /* ---------------- Render: puja cards ---------------- */

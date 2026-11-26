@@ -34,6 +34,11 @@ window.AGNI_DATA = {
     // app link here (see GOOGLE-SHEET-SETUP.md). Until it is set, customers
     // are asked to send their request to you on WhatsApp.
     bookingEndpoint: "https://script.google.com/macros/s/AKfycbzP-iCFASCAFN81YVaA7jjVAPGoswoHLe7_9SqsOqrq19tz9EgMcn4gn96k_DqTevA/exec",
+    // Location used for the homepage "Today's Panchang" (sunrise, Rahu Kalam…)
+    panchangLocation: { name: "Chennai", lat: 13.0827, lon: 80.2707 },
+    // Show prices to customers? false = prices are hidden on the website and
+    // confirmed on the phone call (the admin panel still shows them).
+    showPrices: false,
     // How customers can pay (after the puja – no online payment for now)
     paymentOptions: {
       india: ["Cash after the puja", "UPI / bank transfer after the puja"],
@@ -60,7 +65,7 @@ window.AGNI_DATA = {
       type: "ceremony",
       featured: true,
       popular: false,
-      image: "",
+      image: "images/tharpanam.jpg",
       short: "Monthly and Amavasya offerings of water and til to honour and nourish our ancestors.",
       description:
         "Tharpanam is the sacred offering of water mixed with black sesame (til) to our Pitrus (ancestors). It is performed on Amavasya, during Mahalaya Paksham, on solar month beginnings and eclipses. Our Pandit guides you through every mantra, so you can perform it correctly even from abroad.",
@@ -78,7 +83,7 @@ window.AGNI_DATA = {
       type: "ceremony",
       featured: true,
       popular: false,
-      image: "",
+      image: "images/thithi-shraddham.jpg",
       short: "The annual remembrance ritual for a departed parent or ancestor, on the correct thithi.",
       description:
         "Thithi (Shraddham) is the yearly ceremony performed on the lunar day on which a parent or ancestor passed away. It includes Sankalpam, Homam, Pinda Pradhanam and offerings to Brahmanas. Not sure of the thithi date this year? Share the date of passing and our Pandits will calculate it for you.",
@@ -96,7 +101,7 @@ window.AGNI_DATA = {
       type: "ceremony",
       featured: true,
       popular: false,
-      image: "",
+      image: "images/upanayanam.jpg",
       short: "The sacred thread ceremony – the boy's initiation into Vedic learning and Gayatri mantra.",
       description:
         "Upanayanam (Poonal / Sacred Thread Ceremony) marks a boy's initiation into Vedic study, when he receives the Yagnopaveetham and the Gayatri mantra from his father and guru. We arrange the complete ceremony – Udakashanti, Jaatakarma, Choulam, Upanayanam homam and Brahmopadesam – as per your family tradition.",
@@ -348,7 +353,10 @@ window.AGNI_DATA = {
     { code: "DE", name: "Germany", dial: "+49", currency: "EUR", rate: 0.011, zones: [["Europe/Berlin", "Central European"]], prasadam: { available: true, charge: 2200, days: "8 – 14 business days" } },
     { code: "MY", name: "Malaysia", dial: "+60", currency: "MYR", rate: 0.053, zones: [["Asia/Kuala_Lumpur", "Malaysia time"]], prasadam: { available: true, charge: 1500, days: "6 – 10 business days" } },
     { code: "QA", name: "Qatar", dial: "+974", currency: "QAR", rate: 0.044, zones: [["Asia/Qatar", "Qatar time"]], prasadam: { available: true, charge: 1300, days: "6 – 9 business days" } },
-    { code: "SA", name: "Saudi Arabia", dial: "+966", currency: "SAR", rate: 0.045, zones: [["Asia/Riyadh", "Saudi time"]], prasadam: { available: false, charge: 0, days: "Not available (customs rules)" } }
+    { code: "SA", name: "Saudi Arabia", dial: "+966", currency: "SAR", rate: 0.045, zones: [["Asia/Riyadh", "Saudi time"]], prasadam: { available: false, charge: 0, days: "Not available (customs rules)" } },
+    // Any other country. Keep this last. Its time zone is taken from the
+    // customer's device, and Prasadam delivery is confirmed on the call.
+    { code: "XX", name: "Other country", dial: "", currency: "USD", rate: 0.012, zones: [], other: true, prasadam: { available: true, charge: 3000, days: "Confirmed on the call" } }
   ],
 
   /* ---------- Booking rules ---------- */

@@ -14,3 +14,6 @@ Sample photos from Wikimedia Commons. They are freely licensed but require attri
 - images/marriage-pooja.jpg — "Fire rituals at a Hindu Wedding, Orissa India.jpg" by Paolo Crosetto, CC BY-SA 2.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Fire_rituals_at_a_Hindu_Wedding,_Orissa_India.jpg
 - images/special-pujas.jpg — "Priest in Bull Temple.jpg" by Ramon, CC BY-SA 2.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Priest_in_Bull_Temple.jpg
 - images/about.jpg — "Decorated Thali in Our Pooja Place.jpg" by Swaminathan, CC BY 2.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:Decorated_Thali_in_Our_Pooja_Place.jpg
+- images/tharpanam.jpg — "TARPAN RITUAL.jpg" by Susovan Chakraborty5, CC BY-SA 4.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:TARPAN_RITUAL.jpg
+- images/thithi-shraddham.jpg — "A man and a Brahmin performing Shraddha ceremony in Nepal.jpg" by 9n2nk, CC BY-SA 4.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:A_man_and_a_Brahmin_performing_Shraddha_ceremony_in_Nepal.jpg
+- images/upanayanam.jpg — "A yagyopaveet sanskar upanayana samskara.jpg" by vinodbahal from Shimla, India, CC BY 2.0, via Wikimedia Commons: https://commons.wikimedia.org/wiki/File:A_yagyopaveet_sanskar_upanayana_samskara.jpg

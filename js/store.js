@@ -101,6 +101,15 @@
   const city = (name) => cities().find((c) => c.name === name) || null;
   const activeCities = () => cities().filter((c) => c.active);
 
+  // "Other country": use the time zone of the customer's own device
+  DATA.countries.forEach((c) => {
+    if (c.other && !c.zones.length) {
+      let tz = "UTC";
+      try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch (e) { /* keep UTC */ }
+      if (tz === "Asia/Calcutta") tz = "Asia/Kolkata"; // older name for India's time zone
+      c.zones = tz === "Asia/Kolkata" ? [["UTC", "UTC / GMT"]] : [[tz, "Your time zone (" + tz.split("/").pop().replace(/_/g, " ") + ")"], ["UTC", "UTC / GMT"]];
+    }
+  });
   const countries = () => DATA.countries;
   const country = (code) => DATA.countries.find((c) => c.code === code) || null;
 
@@ -400,7 +409,7 @@
       `Puja: ${f.puja} – ${f.bookingType}`, `Preferred: ${f.date}, ${f.timeIST} IST`, f.customerTime ? `Customer's time: ${f.customerTime}` : "",
       `Country: ${f.country}`, f.city ? `City: ${f.city}` : "", f.address ? `Address: ${f.address}` : "",
       f.samagri ? `Samagri kit: ${f.samagri}` : "", f.prasadam ? `Prasadam delivery: ${f.prasadam}` : "",
-      `Estimated price: ₹${Number(f.estimate).toLocaleString("en-IN")}`, `Payment: ${f.payment}`,
+      DATA.site.showPrices !== false ? `Estimated price: ₹${Number(f.estimate).toLocaleString("en-IN")}` : "", `Payment: ${f.payment}`,
       f.language ? `Language: ${f.language}` : "", f.details ? `Details: ${f.details}` : "", f.instructions ? `Instructions: ${f.instructions}` : ""
     ].filter((l, i) => l || i === 1).join("\n");
   }

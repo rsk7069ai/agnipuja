@@ -80,7 +80,7 @@
       } else {
         $("#profileCancel").hidden = true;
       }
-      f.country.innerHTML = A.countries().map((c) => `<option value="${c.code}">${U.esc(c.name)}</option>`).join("") + `<option value="OTHER">Other country</option>`;
+      f.country.innerHTML = A.countries().map((c) => `<option value="${c.code}">${U.esc(c.name)}</option>`).join("");
       $("#cityList").innerHTML = A.activeCities().map((c) => `<option value="${U.esc(c.name)}">`).join("");
       const a = u.address || {};
       f.name.value = u.name || ""; f.phone.value = u.phone || ""; f.email.value = u.email || "";

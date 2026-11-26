@@ -15,6 +15,9 @@
     String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const icon = (name) => `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const money = (n) => "₹" + Math.round(n || 0).toLocaleString("en-IN");
+  // Prices can be switched off in js/pujas-data.js (site.showPrices)
+  const showPrices = SITE.showPrices !== false;
+  if (!showPrices && !/admin\.html$/.test(location.pathname)) document.documentElement.classList.add("hide-prices");
   function approx(n, code) {
     const co = A.country(code);
     if (!co || co.code === "IN") return "";
@@ -327,7 +330,7 @@
   }
 
   window.AgniUI = {
-    $, $$, esc, icon, money, approx, waLink, qs, here, media, toast, modal, confirmBox, slotPicker,
+    $, $$, esc, icon, money, approx, showPrices, waLink, qs, here, media, toast, modal, confirmBox, slotPicker,
     statusBadge, modeBadge, icsFor, initials, mountAccount,
     requireLogin() {
       if (A.currentUser()) return A.currentUser();

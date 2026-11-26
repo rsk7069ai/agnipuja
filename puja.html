@@ -66,16 +66,16 @@
               <ul class="benefits">${p.benefits.map((b) => `<li>${icon("check")}${esc(b)}</li>`).join("")}</ul>
               <div class="include-grid">
                 ${has("online") ? `<div class="review-box"><h4>${icon("video")} Online puja includes</h4><p>Live video link · sankalpam in your family's name · Pandit dakshina · optional Prasadam delivery in India and abroad</p></div>` : ""}
-                ${has("home") ? `<div class="review-box"><h4>${icon("home")} At-home puja includes</h4><p>Pandit visit · complete rituals as per your tradition · Pandit dakshina · optional samagri kit (${money(p.samagri)})</p></div>` : ""}
+                ${has("home") ? `<div class="review-box"><h4>${icon("home")} At-home puja includes</h4><p>Pandit visit · complete rituals as per your tradition · Pandit dakshina · optional samagri kit${U.showPrices ? ` (${money(p.samagri)})` : ""}</p></div>` : ""}
               </div>
               ${(p.fields || []).length ? `<p class="notice" style="margin-top:20px">${icon("info")}<span><strong>Details we'll ask for:</strong> ${(p.fields || []).map((f) => fieldsNote[f]).filter(Boolean).join(" ")}</span></p>` : ""}
             </div>
             <aside class="summary">
               <div class="panel price-card">
-                <h3>Prices</h3>
-                ${has("online") ? `<div class="price-opt"><span>${U.modeBadge("online")}<small>Watch live from anywhere</small></span><strong>${money(p.price.online)}</strong></div>` : ""}
-                ${has("home") ? `<div class="price-opt"><span>${U.modeBadge("home")}<small>+ travel by city, samagri optional</small></span><strong>${money(p.price.home)}</strong></div>` : ""}
-                <p class="hint">${icon("info")} Pandit dakshina included. No online payment – we confirm the price on a call and you pay after the puja.</p>
+                <h3>${U.showPrices ? "Prices" : "Book this Puja"}</h3>
+                ${has("online") ? `<div class="price-opt"><span>${U.modeBadge("online")}<small>Watch live from anywhere</small></span>${U.showPrices ? `<strong>${money(p.price.online)}</strong>` : ""}</div>` : ""}
+                ${has("home") ? `<div class="price-opt"><span>${U.modeBadge("home")}<small>${U.showPrices ? "+ travel by city, samagri optional" : "Pandit visits your home"}</small></span>${U.showPrices ? `<strong>${money(p.price.home)}</strong>` : ""}</div>` : ""}
+                <p class="hint">${icon("info")} ${U.showPrices ? "Pandit dakshina included. " : ""}No online payment – we confirm the price on a call and you pay after the puja.</p>
                 ${has("online") ? `<a class="btn btn-primary btn-block btn-lg" href="book.html?mode=online&puja=${esc(p.id)}">${icon("video")} Book Online Puja</a>` : ""}
                 ${has("home") ? `<a class="btn ${has("online") ? "btn-outline" : "btn-primary"} btn-block btn-lg" href="book.html?mode=home&puja=${esc(p.id)}">${icon("home")} Book a Pandit at Home</a>` : ""}
                 <a class="btn btn-whatsapp btn-block" href="${U.waLink("Namaste, I would like to know more about " + p.name + ".")}" target="_blank" rel="noopener">${icon("whatsapp")} Ask on WhatsApp</a>
@@ -92,7 +92,7 @@
                 ${U.media(o)}
                 <div class="card-body">
                   <h3>${esc(o.name)}</h3><p>${esc(o.short)}</p>
-                  <div class="card-price">From <strong>${money(A.startingPrice(o))}</strong></div>
+                  ${U.showPrices ? `<div class="card-price">From <strong>${money(A.startingPrice(o))}</strong></div>` : ""}
                   <a class="btn btn-soft btn-block" href="puja.html?id=${esc(o.id)}">View Details ${icon("arrow")}</a>
                 </div>
               </article>`).join("")}</div>
