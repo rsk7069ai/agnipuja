@@ -113,12 +113,12 @@
   // Short star names for lists – the Tamil name where one is given
   const STAR = NAKSHATRA.map((n) => (n.match(/\(([^)]+)\)/) || [null, n])[1]);
   // Stars (with padas) that make up a rasi: each rasi is 9 padas
-  function rasiStars(r) {
+  function rasiStars(r, names = STAR) {
     const byStar = {};
     for (let g = r * 9; g < r * 9 + 9; g++) (byStar[Math.floor(g / 4)] = byStar[Math.floor(g / 4)] || []).push((g % 4) + 1);
     return Object.keys(byStar).map(Number).map((k) => {
       const p = byStar[k];
-      return p.length === 4 ? STAR[k] : `${STAR[k]} ${p.length === 1 ? p[0] : p.length === 2 ? p.join(", ") : p[0] + "–" + p[p.length - 1]}`;
+      return p.length === 4 ? names[k] : `${names[k]} ${p.length === 1 ? p[0] : p.length === 2 ? p.join(", ") : p[0] + "–" + p[p.length - 1]}`;
     });
   }
   // Chandrashtamam: people whose birth rasi has the moon in its 8th house
@@ -180,7 +180,7 @@
       if (sunSign(sunTimes(prev, loc.lat, loc.lon).set) !== sign) break;
       day++; d = prev;
     }
-    return { month: TAMIL_MONTH[sign], day, firstDay: day === 1 };
+    return { month: TAMIL_MONTH[sign], monthIndex: sign, day, firstDay: day === 1 };
   }
 
   function day(ymd, loc) {
@@ -200,15 +200,15 @@
     });
     // Chandrashtamam at sunrise, and the change if it happens before the next sunrise
     const mr = moonRasi(s.rise), mrEnd = nextChange(s.rise, moonRasi, 64);
-    const chandra = { rasi: RASI[ashtamaRasi(mr)], stars: rasiStars(ashtamaRasi(mr)), moonRasi: RASI[mr], end: mrEnd };
-    if (mrEnd && mrEnd < s.rise + 1) chandra.next = { rasi: RASI[ashtamaRasi((mr + 1) % 12)], stars: rasiStars(ashtamaRasi((mr + 1) % 12)) };
+    const chandra = { rasi: RASI[ashtamaRasi(mr)], rasiIndex: ashtamaRasi(mr), stars: rasiStars(ashtamaRasi(mr)), moonRasi: RASI[mr], end: mrEnd };
+    if (mrEnd && mrEnd < s.rise + 1) chandra.next = { rasi: RASI[ashtamaRasi((mr + 1) % 12)], rasiIndex: ashtamaRasi((mr + 1) % 12), stars: rasiStars(ashtamaRasi((mr + 1) % 12)) };
     const ti = tithiIndex(s.rise), na = nakshatraIndex(s.rise), yo = yogaIndex(s.rise);
     const tiEnd = nextChange(s.rise, tithiIndex), naEnd = nextChange(s.rise, nakshatraIndex), yoEnd = nextChange(s.rise, yogaIndex);
     return {
-      date: ymd, weekday: WEEKDAY[wd], sunrise: s.rise, sunset: s.set,
-      tithi: { name: tithiName(ti), end: tiEnd, next: tithiName((ti + 1) % 30) },
-      nakshatra: { name: NAKSHATRA[na], end: naEnd, next: NAKSHATRA[(na + 1) % 27] },
-      yoga: { name: YOGA[yo], end: yoEnd },
+      date: ymd, weekday: WEEKDAY[wd], weekdayIndex: wd, sunrise: s.rise, sunset: s.set,
+      tithi: { name: tithiName(ti), index: ti, end: tiEnd, next: tithiName((ti + 1) % 30) },
+      nakshatra: { name: NAKSHATRA[na], index: na, end: naEnd, next: NAKSHATRA[(na + 1) % 27] },
+      yoga: { name: YOGA[yo], index: yo, end: yoEnd },
       rahu: period(RAHU[wd]), yamagandam: period(YAMA[wd]), gulika: period(GULIKA[wd]),
       chandrashtamam: chandra, nallaNeram, gowri: GOWRI[wd].map((name, i) => Object.assign({ name, good: GOWRI_GOOD.includes(name) }, period(i + 1))),
       tamil: tamilDate(ymd, loc),
@@ -228,7 +228,7 @@
   }
 
   window.Panchang = {
-    day, upcoming, specialsOn, tamilDate, sunTimes,
+    day, upcoming, specialsOn, tamilDate, sunTimes, rasiStars,
     tithiIndex, nakshatraIndex, yogaIndex, tithiName, sunLongitude, moonLongitude, ayanamsa,
     msFromJd, jdFromMs, addDays
   };
