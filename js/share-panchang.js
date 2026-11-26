@@ -46,7 +46,7 @@
   function shareText(x) {
     const d = x.d;
     const lines = [
-      `🪔 *Today's Panchangam* – ${longDate(x.ymd)}`,
+      `🔥 *Today's Panchangam* – ${longDate(x.ymd)}`,
       `${d.tamil.month} ${d.tamil.day} · ${x.loc.name}`,
       "",
       `📅 *Tithi:* ${x.rows[0][1]}${x.rows[0][2] ? ` (${x.rows[0][2]})` : ""}`,
