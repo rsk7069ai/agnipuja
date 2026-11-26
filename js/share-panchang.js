@@ -231,12 +231,12 @@
               <button type="button" class="btn btn-link btn-sm" data-sh-today>Today</button>
             </div>
             <div class="share-actions">
-              <button type="button" class="btn btn-whatsapp" data-sh-share>${icon("whatsapp")} Share image + text</button>
+              <button type="button" class="btn btn-whatsapp" data-sh-share disabled>${icon("whatsapp")} Preparing image…</button>
               <button type="button" class="btn btn-outline" data-sh-download>Download image</button>
               <button type="button" class="btn btn-outline" data-sh-copy>Copy text</button>
               <a class="btn btn-soft" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(text)}">${icon("whatsapp")} Send text only</a>
             </div>
-            <p class="hint" style="margin-top:10px">${icon("info")} On an Android phone, <strong>Share image + text</strong> opens WhatsApp with both attached – choose the customer. On a computer, download the image and attach it in WhatsApp, then paste the text.</p>
+            <p class="hint" style="margin-top:10px" data-sh-hint></p>
             <label class="field" style="margin-top:14px">WhatsApp message
               <textarea class="input" rows="16" data-sh-text>${esc(text)}</textarea>
             </label>
@@ -245,34 +245,54 @@
       </div>`;
 
     const canvas = $("#shareCanvas", root);
-    drawImage(canvas, x);
+    const fileName = `agni-puja-panchang-${ymd}.png`;
+    const shareBtn = $("[data-sh-share]", root), hint = $("[data-sh-hint]", root);
+    // Prepare the image file as soon as it is drawn, so tapping Share can
+    // open the share menu straight away (phones only allow sharing right
+    // after a tap).
+    let file = null, canShareFile = false;
+    drawImage(canvas, x).then(() => toBlob(canvas)).then((blob) => {
+      file = new File([blob], fileName, { type: "image/png" });
+      try { canShareFile = !!(navigator.canShare && navigator.canShare({ files: [file] })); } catch (e) { canShareFile = false; }
+      shareBtn.disabled = false;
+      shareBtn.innerHTML = `${icon("whatsapp")} ${canShareFile ? "Share on WhatsApp" : "Download image + open WhatsApp"}`;
+      hint.innerHTML = `${icon("info")} ${canShareFile
+        ? "Tap <strong>Share on WhatsApp</strong>, choose <strong>WhatsApp</strong> in the menu, then the customer. The image and message are sent together."
+        : "This browser can't attach images to WhatsApp directly. The image is downloaded and WhatsApp opens with the message – choose the customer, then attach the downloaded image (📎 → Gallery or Document)."}`;
+    });
     const go = (d) => mount(root, d);
     root.querySelectorAll("[data-sh-step]").forEach((b) => b.addEventListener("click", () => go(P.addDays(ymd, +b.dataset.shStep))));
     $("[data-sh-date]", root).addEventListener("change", (e) => e.target.value && go(e.target.value));
     $("[data-sh-today]", root).addEventListener("click", () => go(A.istToday()));
     const currentText = () => $("[data-sh-text]", root).value;
-    const fileName = `agni-puja-panchang-${ymd}.png`;
-
-    $("[data-sh-download]", root).addEventListener("click", async () => {
-      const blob = await toBlob(canvas);
+    const download = (blob) => {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob); a.download = fileName;
       document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    });
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    };
+    // Download the image and open WhatsApp with the message (no awaits before
+    // window.open, so the browser doesn't block it as a pop-up)
+    const downloadAndOpenWhatsApp = () => {
+      download(file);
+      window.open("https://wa.me/?text=" + encodeURIComponent(currentText()), "_blank", "noopener");
+      U.toast("Image downloaded. In WhatsApp, choose the customer and attach the image.", "info", 7000);
+    };
+
+    $("[data-sh-download]", root).addEventListener("click", async () => download(file || await toBlob(canvas)));
     $("[data-sh-copy]", root).addEventListener("click", async () => {
       try { await navigator.clipboard.writeText(currentText()); U.toast("Text copied. Paste it in WhatsApp."); }
       catch (e) { const ta = $("[data-sh-text]", root); ta.select(); document.execCommand("copy"); U.toast("Text copied."); }
     });
-    $("[data-sh-share]", root).addEventListener("click", async () => {
-      const blob = await toBlob(canvas);
-      const file = new File([blob], fileName, { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], text: currentText() }); }
-        catch (e) { if (e.name !== "AbortError") U.toast("Sharing didn't work – please download the image instead.", "error"); }
-      } else {
-        U.toast("This browser can't share images directly. Download the image, then attach it in WhatsApp.", "info", 7000);
-      }
+    shareBtn.addEventListener("click", () => {
+      if (!file) return;
+      if (!canShareFile) { downloadAndOpenWhatsApp(); return; }
+      // Called straight from the tap – nothing is awaited before share()
+      navigator.share({ files: [file], text: currentText() }).catch((e) => {
+        if (e && e.name === "AbortError") return; // closed the share menu
+        U.toast("Couldn't open the share menu – downloading the image and opening WhatsApp instead.", "info", 6000);
+        downloadAndOpenWhatsApp();
+      });
     });
   }
 
