@@ -112,6 +112,17 @@
   const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   // Which eighth of the daytime each period falls in, by weekday (Sunday first)
   const RAHU = [8, 2, 7, 5, 6, 4, 3], YAMA = [5, 4, 3, 2, 1, 7, 6], GULIKA = [7, 6, 5, 4, 3, 2, 1];
+  // Gowri Panchangam: the eight daytime parts, by weekday (Sunday first)
+  const GOWRI = [
+    ["Uthi", "Amirdha", "Rogam", "Labam", "Dhanam", "Sugam", "Soram", "Visham"],
+    ["Amirdha", "Visham", "Rogam", "Labam", "Dhanam", "Sugam", "Soram", "Uthi"],
+    ["Rogam", "Labam", "Dhanam", "Sugam", "Soram", "Uthi", "Visham", "Amirdha"],
+    ["Labam", "Dhanam", "Sugam", "Soram", "Visham", "Uthi", "Amirdha", "Rogam"],
+    ["Dhanam", "Sugam", "Soram", "Uthi", "Amirdha", "Visham", "Rogam", "Labam"],
+    ["Sugam", "Soram", "Uthi", "Visham", "Amirdha", "Rogam", "Labam", "Dhanam"],
+    ["Soram", "Uthi", "Visham", "Amirdha", "Rogam", "Labam", "Dhanam", "Sugam"]
+  ];
+  const GOWRI_GOOD = ["Amirdha", "Uthi", "Labam", "Sugam", "Dhanam"];
 
   /* ---------- Special days ----------
      Amavasya / Pournami: the tithi in force at midday.
@@ -162,6 +173,16 @@
     const wd = new Date(ymd + "T12:00:00Z").getUTCDay();
     const part = (s.set - s.rise) / 8;
     const period = (k) => ({ start: s.rise + (k - 1) * part, end: s.rise + k * part });
+    // Nalla Neram: the good Gowri parts of the day, leaving out Rahu Kalam
+    // and Yamagandam; touching parts are joined into one period.
+    const nallaNeram = [];
+    GOWRI[wd].forEach((g, i) => {
+      const k = i + 1;
+      if (!GOWRI_GOOD.includes(g) || k === RAHU[wd] || k === YAMA[wd]) return;
+      const p = period(k), last = nallaNeram[nallaNeram.length - 1];
+      if (last && Math.abs(last.end - p.start) < 1e-6) { last.end = p.end; last.names.push(g); }
+      else nallaNeram.push({ start: p.start, end: p.end, names: [g] });
+    });
     const ti = tithiIndex(s.rise), na = nakshatraIndex(s.rise), yo = yogaIndex(s.rise);
     const tiEnd = nextChange(s.rise, tithiIndex), naEnd = nextChange(s.rise, nakshatraIndex), yoEnd = nextChange(s.rise, yogaIndex);
     return {
@@ -170,6 +191,7 @@
       nakshatra: { name: NAKSHATRA[na], end: naEnd, next: NAKSHATRA[(na + 1) % 27] },
       yoga: { name: YOGA[yo], end: yoEnd },
       rahu: period(RAHU[wd]), yamagandam: period(YAMA[wd]), gulika: period(GULIKA[wd]),
+      nallaNeram, gowri: GOWRI[wd].map((name, i) => Object.assign({ name, good: GOWRI_GOOD.includes(name) }, period(i + 1))),
       tamil: tamilDate(ymd, loc),
       specials: specialsOn(ymd, loc)
     };

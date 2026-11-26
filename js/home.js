@@ -71,7 +71,8 @@
     let d, next;
     try { d = P.day(today, loc); next = P.upcoming(today, loc, 30); } catch (e) { box.closest("section").hidden = true; return; }
     const ist = (jd, opts) => new Intl.DateTimeFormat("en-US", Object.assign({ timeZone: "Asia/Kolkata" }, opts)).format(new Date(P.msFromJd(jd)));
-    const t = (jd) => ist(jd, { hour: "numeric", minute: "2-digit" });
+    // non-breaking space keeps "6:12 AM" together when the line wraps
+    const t = (jd) => ist(jd, { hour: "numeric", minute: "2-digit" }).replace(/\s/g, " ");
     const dayOf = (jd) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(P.msFromJd(jd)));
     const till = (jd) => !jd ? "" : `till ${t(jd)}${dayOf(jd) !== today ? ", " + ist(jd, { day: "numeric", month: "short" }) : ""}`;
     // "1:22 – 2:47 PM" (or "11:56 AM – 1:22 PM" when it crosses noon)
@@ -104,11 +105,17 @@
         ${item("Tithi", esc(d.tithi.name), d.tithi.end ? `${till(d.tithi.end)}, then ${esc(d.tithi.next)}` : "")}
         ${item("Nakshatram", esc(d.nakshatra.name), till(d.nakshatra.end))}
         ${item("Yoga", esc(d.yoga.name), till(d.yoga.end))}
-        ${item("Sunrise · Sunset", `${t(d.sunrise)} · ${t(d.sunset)}`, "", "pg-time")}
+        ${item("Sunrise", t(d.sunrise), "", "pg-time")}
+        ${item("Sunset", t(d.sunset), "", "pg-time")}
         ${item("Rahu Kalam", range(d.rahu), "", "pg-time")}
         ${item("Yamagandam", range(d.yamagandam), "", "pg-time")}
         ${item("Gulika", range(d.gulika), "", "pg-time")}
       </div>
+      ${d.nallaNeram.length ? `<div class="pg-nalla">
+        <span class="pg-nalla-label">${icon("check")} Nalla Neram</span>
+        <span class="pg-nalla-times">${d.nallaNeram.map((p) => `<strong>${range(p)}</strong>`).join("")}</span>
+        <small>Good times from the Gowri Panchangam, avoiding Rahu Kalam and Yamagandam</small>
+      </div>` : ""}
       ${next.length ? `<div class="pg-next"><span>Coming up</span>
         ${next.slice(0, 6).map((u) => `<a class="chip" href="${bookLink(u.puja)}" title="${esc(u.note)}"><strong>${nice(u.date)}</strong> ${esc(u.name)}</a>`).join("")}
       </div>` : ""}
