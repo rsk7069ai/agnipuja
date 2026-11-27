@@ -5,6 +5,9 @@
   "use strict";
   const A = window.Agni, U = window.AgniUI;
   const { $, $$, esc } = U;
+  // Customer login is switched off for now (see js/ui.js mountAccount).
+  location.replace("track.html");
+  return;
 
   // Only allow redirects back to pages on this site
   const rawNext = U.qs("next") || "dashboard.html";

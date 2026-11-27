@@ -18,8 +18,12 @@ const COLUMNS = [
   ["country", "Country"], ["city", "City"], ["address", "Address"],
   ["samagri", "Samagri kit"], ["prasadam", "Prasadam delivery"],
   ["estimate", "Estimated price (₹)"], ["payment", "Payment"],
-  ["language", "Language"], ["details", "Puja details"], ["instructions", "Instructions"]
+  ["language", "Language"], ["details", "Puja details"], ["instructions", "Instructions"],
+  // You can edit Status in the sheet (e.g. Confirmed, Completed). Customers see
+  // it on the website's Track Booking page.
+  ["status", "Status"]
 ];
+const STATUS = { pending: "Pending – we will call you", cancelled: "Cancelled" };
 const TYPES = { new: "New booking", reschedule: "Time change", cancel: "Cancelled by customer" };
 
 // The admin page reads bookings with a secret admin key. The key is NOT
@@ -33,8 +37,11 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     if (data && data.action === "list") return reply(listBookings(data.key));
+    if (data && data.action === "track") return reply(trackBooking(data.id, data.phone));
     if (!data || !TYPES[data.type] || !data.name || !data.phone) return reply({ ok: false });
-    const row = COLUMNS.map(([key]) => (key === "type" ? TYPES[data.type] : clean(data[key])));
+    const row = COLUMNS.map(([key]) => (key === "type" ? TYPES[data.type]
+      : key === "status" ? (data.type === "cancel" ? STATUS.cancelled : STATUS.pending)
+      : clean(data[key])));
 
     const lock = LockService.getScriptLock();
     lock.waitLock(10000);
@@ -56,6 +63,52 @@ function doGet() {
   return reply({ ok: true, message: "Agni Puja booking requests are being received." });
 }
 
+// Reads the sheet as objects keyed like COLUMNS (matched by header text).
+function readRows() {
+  const values = getSheet().getDataRange().getDisplayValues();
+  const byLabel = {};
+  COLUMNS.forEach(([k, label]) => { byLabel[label] = k; });
+  const keys = (values[0] || []).map((label) => byLabel[label] || label);
+  return values.slice(1).map((r, i) => {
+    const o = { row: i + 2 };
+    keys.forEach((k, j) => { o[k] = r[j]; });
+    return o;
+  }).filter((o) => o.id || o.name);
+}
+
+const digits = (s) => String(s || "").replace(/\D/g, "");
+
+// Track Booking page: a customer gets their own booking by booking ID plus
+// the phone number used for it. Only puja, time and status are returned.
+function trackBooking(id, phone) {
+  id = String(id || "").trim().toUpperCase();
+  const ph = digits(phone).slice(-10);
+  if (!id || ph.length < 6) return { ok: false, error: "missing" };
+  const cache = CacheService.getScriptCache();
+  const failKey = "trackFails:" + id;
+  const fails = Number(cache.get(failKey) || 0);
+  if (fails >= MAX_FAILS) return { ok: false, error: "locked" };
+  const rows = readRows().filter((r) => String(r.id).trim().toUpperCase() === id && digits(r.phone).slice(-10) === ph);
+  if (!rows.length) {
+    cache.put(failKey, String(fails + 1), LOCK_SECONDS);
+    return { ok: false, error: "not-found" };
+  }
+  const first = rows[0], last = rows[rows.length - 1];
+  const cancelled = rows.some((r) => r.type === TYPES.cancel);
+  // Status of the newest row for this booking (a time change starts again as
+  // pending until you update it). A cancellation always shows as cancelled.
+  const status = cancelled ? STATUS.cancelled : (rows.map((r) => r.status).filter(Boolean).pop() || STATUS.pending);
+  return {
+    ok: true,
+    booking: {
+      id: first.id, name: String(first.name || "").split(" ")[0], puja: first.puja, bookingType: first.bookingType,
+      date: last.date, timeIST: last.timeIST, customerTime: last.customerTime, city: first.city,
+      receivedAt: first.sentAt, status,
+      history: rows.map((r) => ({ at: r.sentAt, text: r.type }))
+    }
+  };
+}
+
 // Returns every row of the sheet to the admin page, newest first.
 function listBookings(key) {
   const cache = CacheService.getScriptCache();
@@ -68,16 +121,7 @@ function listBookings(key) {
     return { ok: false, error: "bad-key" };
   }
   cache.remove("adminFails");
-  const values = getSheet().getDataRange().getDisplayValues();
-  const byLabel = {};
-  COLUMNS.forEach(([k, label]) => { byLabel[label] = k; });
-  const keys = (values[0] || []).map((label) => byLabel[label] || label);
-  const rows = values.slice(1).map((r, i) => {
-    const o = { row: i + 2 };
-    keys.forEach((k, j) => { o[k] = r[j]; });
-    return o;
-  }).filter((o) => o.id || o.name).reverse();
-  return { ok: true, rows };
+  return { ok: true, rows: readRows().reverse() };
 }
 
 function getSheet() {
@@ -88,6 +132,11 @@ function getSheet() {
     sheet.appendRow(COLUMNS.map((c) => c[1]));
     sheet.setFrozenRows(1);
     sheet.getRange(1, 1, 1, COLUMNS.length).setFontWeight("bold").setBackground("#f3e6c4");
+  } else if (sheet.getLastColumn() < COLUMNS.length) {
+    // Sheet made by an older version: add the new header(s), e.g. Status.
+    const from = sheet.getLastColumn() + 1;
+    const extra = COLUMNS.slice(from - 1).map((c) => c[1]);
+    sheet.getRange(1, from, 1, extra.length).setValues([extra]).setFontWeight("bold").setBackground("#f3e6c4");
   }
   return sheet;
 }

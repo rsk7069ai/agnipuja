@@ -136,7 +136,7 @@
           <li><a href="book.html?mode=online">Online Puja</a></li>
           <li><a href="book.html?mode=home">Pandit at Home</a></li>
           <li><a href="nri.html">NRI Online Puja</a></li>
-          <li><a href="dashboard.html">My Bookings</a></li>
+          <li><a href="track.html">Track Booking</a></li>
           <li><a href="index.html#faq">FAQs</a></li>
         </ul>
       </div>
@@ -187,11 +187,13 @@
     if (!actions) return;
     const old = $(".account", actions);
     if (old) old.remove();
-    const u = A.currentUser();
+    // Customer login is switched off for now: customers book without an
+    // account and check their booking on track.html (booking ID + phone).
+    const u = null;
     const wrap = document.createElement("div");
     wrap.className = "account";
     if (!u) {
-      wrap.innerHTML = `<a class="account-btn" href="login.html?next=${encodeURIComponent(here())}">${icon("user")}<span>Login</span></a>`;
+      wrap.innerHTML = `<a class="account-btn" href="track.html">${icon("calendar")}<span>Track Booking</span></a>`;
     } else {
       wrap.innerHTML = `
         <button class="account-btn" aria-haspopup="true" aria-expanded="false"><span class="avatar avatar-sm">${esc(initials(u.name || u.email || "U"))}</span><span>${esc((u.name || "My Account").split(" ")[0])}</span></button>
@@ -334,7 +336,7 @@
     statusBadge, modeBadge, icsFor, initials, mountAccount,
     requireLogin() {
       if (A.currentUser()) return A.currentUser();
-      location.replace("login.html?next=" + encodeURIComponent(here()));
+      location.replace("track.html");
       return null;
     }
   };

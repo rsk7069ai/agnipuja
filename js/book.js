@@ -178,7 +178,7 @@
       </div>`;
 
     return `<form class="panel form" id="detailsForm" novalidate>
-      <div><h2>Your details</h2><p class="panel-intro" style="margin:0">For <strong>${esc(p.name)}</strong> · ${S.mode === "online" ? "Online puja" : "Pandit at home"}. ${loggedIn ? "Filled in from your profile – change anything for this booking." : `We'll call you on this number to confirm. <a class="link-btn" href="login.html?next=${encodeURIComponent("book.html?resume=1")}">Log in</a> to use your saved details.`}</p></div>
+      <div><h2>Your details</h2><p class="panel-intro" style="margin:0">For <strong>${esc(p.name)}</strong> · ${S.mode === "online" ? "Online puja" : "Pandit at home"}. ${loggedIn ? "Filled in from your profile – change anything for this booking." : "We'll call you on this number to confirm."}</p></div>
 
       <fieldset class="group"><legend>Contact</legend>
         <div class="form">
@@ -446,7 +446,8 @@
       <div class="confirm-head">
         <span class="success-icon">${icon("check")}</span>
         <h2>Booking request received</h2>
-        <p class="muted">Request ID <span class="booking-id">${b.id}</span></p>
+        <p class="muted">Booking ID <span class="booking-id">${b.id}</span></p>
+        <p class="hint" style="justify-content:center">${icon("info")} Please note this booking ID. With it and your phone number you can check your booking any time on the Track Booking page.</p>
         <p>${b.sentToOwner
           ? `Thank you, ${esc(b.customerName.split(" ")[0])}. We'll call you on <strong>${esc(b.phone)}</strong> within a few hours (6 AM – 9 PM IST) to confirm.`
           : `<strong>One more step:</strong> please send your request to us on WhatsApp so we receive it. We'll then call you on <strong>${esc(b.phone)}</strong> to confirm.`}</p>
@@ -462,7 +463,7 @@
       </div>
 
       <div class="wizard-nav" style="justify-content:flex-start">
-        <a class="btn btn-primary" href="dashboard.html#bookings">${icon("calendar")} My Bookings</a>
+        <a class="btn btn-primary" href="track.html?id=${encodeURIComponent(b.id)}">${icon("calendar")} Track this booking</a>
         <a class="btn btn-link" href="book.html">Book another puja</a>
       </div>
     </div>`;

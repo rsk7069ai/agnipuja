@@ -50,6 +50,14 @@ The admin page's **Booking Requests** tab reads the bookings from this sheet, so
 
 Never put the key in the code files or share it — anyone with the key and the web app link can read customer details. After 10 wrong keys, reading is blocked for 15 minutes. To change the key, edit `ADMIN_KEY` in Script Properties (no redeploy needed).
 
+## 7. Customers track their booking
+
+Customers don't log in. You share their **booking ID** with them (WhatsApp, SMS or email), and they check it on the website's **Track Booking** page with that ID and the phone number they booked with. You can also send a direct link: `https://rsk7069ai.github.io/agnipuja/track.html?id=AP261127-K7Q2M`.
+
+- The sheet has a **Status** column. New requests show *Pending – we will call you*. After your call, type **Confirmed** (later **Completed**) in that booking's row, and the customer sees it straight away.
+- If the customer asks for a time change, a new row is added with *Pending* again. Update the Status in that newest row.
+- The customer only sees their puja, date and time, status and history — never other customers' details. After 10 wrong tries for one booking ID, tracking that ID is paused for 15 minutes.
+
 ## Good to know
 
 - **Changing the script later:** in Apps Script, use **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The URL stays the same.

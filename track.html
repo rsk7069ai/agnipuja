@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Track Your Booking – Agni Puja</title>
+  <meta name="description" content="Check the status of your Agni Puja booking with your booking ID and phone number.">
+  <link rel="icon" href="images/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=20261126e">
+  <link rel="stylesheet" href="css/app.css?v=20261127g">
+</head>
+<body data-nav="track">
+  <div id="siteHeader"></div>
+
+  <main>
+    <section class="page-hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container">
+        <p class="eyebrow eyebrow-light">Your Booking</p>
+        <h1>Track Your Booking</h1>
+        <p>Enter the booking ID we shared with you and the phone number you booked with.</p>
+      </div>
+    </section>
+
+    <section class="section section-sm">
+      <div class="container" style="max-width:720px" id="trackRoot">
+        <form class="panel form" id="trackForm" novalidate>
+          <label class="field">Booking ID <span class="req">*</span><input name="id" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. AP261127-K7Q2M"></label>
+          <label class="field">Phone number used for the booking <span class="req">*</span><input name="phone" required autocomplete="tel" inputmode="tel" placeholder="+91 98xxxxxxxx"></label>
+          <p class="form-error" role="alert" hidden></p>
+          <button type="submit" class="btn btn-primary btn-lg">Track booking</button>
+        </form>
+        <div id="trackResult" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <script src="js/pujas-data.js?v=20261127g"></script>
+  <script src="js/store.js?v=20261127g"></script>
+  <script src="js/ui.js?v=20261127g"></script>
+  <script src="js/track.js?v=20261127g"></script>
+</body>
+</html>
