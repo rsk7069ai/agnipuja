@@ -38,6 +38,18 @@ Then commit and push.
 
 Make a test booking on the website. Within a few seconds you should see a new row in the **Booking requests** tab and an email in your inbox. Turn on Gmail notifications on your phone so you hear about new bookings straight away.
 
+## 6. See all bookings in the admin page
+
+The admin page's **Booking Requests** tab reads the bookings from this sheet, so you can see every customer's request from any phone or computer. It's protected by a secret admin key that only you know.
+
+1. In Apps Script, click **Project Settings** (gear icon on the left).
+2. Scroll to **Script Properties** → **Add script property**.
+3. Property: `ADMIN_KEY`. Value: a long secret that's hard to guess, for example 3–4 random words like `mango-river-lamp-1947`. Click **Save script properties**.
+4. If you changed the script code, deploy a new version (see *Changing the script later* below).
+5. Open the website's **Admin** page → **Booking Requests**, enter the key, and click **Show bookings**. Tick *Remember on this device* only on your own phone or computer.
+
+Never put the key in the code files or share it — anyone with the key and the web app link can read customer details. After 10 wrong keys, reading is blocked for 15 minutes. To change the key, edit `ADMIN_KEY` in Script Properties (no redeploy needed).
+
 ## Good to know
 
 - **Changing the script later:** in Apps Script, use **Deploy → Manage deployments → ✏️ Edit → Version: New version → Deploy**. The URL stays the same.

@@ -96,7 +96,10 @@
 
   /* ---------------- Render: testimonials ---------------- */
   function renderTestimonials() {
-    $("#testimonialGrid").innerHTML = DATA.testimonials
+    const list = DATA.testimonials || [];
+    const section = document.getElementById("testimonials");
+    if (!list.length) { if (section) section.hidden = true; return; }
+    $("#testimonialGrid").innerHTML = list
       .map((t) => {
         const initials = t.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
         return `

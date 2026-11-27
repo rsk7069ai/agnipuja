@@ -113,8 +113,10 @@
   const countries = () => DATA.countries;
   const country = (code) => DATA.countries.find((c) => c.code === code) || null;
 
-  const pandits = () => read("pandits", DATA.pandits);
-  const savePandits = (list) => write("pandits", list);
+  // Saved under a new key so browsers drop the old sample Pandit list.
+  const pandits = () => read("panditList", DATA.pandits);
+  const savePandits = (list) => write("panditList", list);
+  const servesCity = (p, cityName) => p.cities === "all" || (p.cities || []).includes(cityName);
   const pandit = (id) => pandits().find((p) => p.id === id) || null;
 
   /* ---------------- Accounts ---------------- */
@@ -219,7 +221,7 @@
 
   function panditEligible(p, date, mode, cityName) {
     if (!p.active || !(p.modes || []).includes(mode)) return false;
-    if (mode === "home" && !(p.cities || []).includes(cityName)) return false;
+    if (mode === "home" && !servesCity(p, cityName)) return false;
     if ((p.weeklyOff || []).includes(weekday(date))) return false;
     if ((p.blocked || []).includes(date)) return false;
     return true;
@@ -306,7 +308,7 @@
     }[kind] || kind;
     b.notifications = b.notifications || [];
     [["SMS", u.phone], ["Email", u.email], ["WhatsApp", u.phone]].forEach(([channel, to]) => {
-      if (to) b.notifications.push({ channel, to, text, at: nowIso(), status: "sent (demo)" });
+      if (to) b.notifications.push({ channel, to, text, at: nowIso(), status: "logged" });
     });
   }
 
@@ -461,69 +463,21 @@
     });
   }
 
-  /* ---------------- Demo data (first visit only) ---------------- */
-  function seed() {
-    if (read("seeded", 0) >= 1) return;
-    const demoUsers = [
-      ["Anand Krishnan", "anand.k@example.com", "+12015550142", { line1: "24 Maple Avenue", city: "Edison", state: "New Jersey", country: "US", pin: "08817" }],
-      ["Meera Subramanian", "meera.s@example.com", "+447700900123", { line1: "8 Station Road", city: "Harrow", state: "London", country: "GB", pin: "HA1 2AA" }],
-      ["Lakshmi Narayanan", "lakshmi.n@example.com", "+919800000011", { line1: "12, 3rd Cross Street, Adyar", city: "Chennai", state: "Tamil Nadu", country: "IN", pin: "600020" }],
-      ["Priya Raghavan", "priya.r@example.com", "+919800000022", { line1: "45 HSR Layout, Sector 2", city: "Bengaluru", state: "Karnataka", country: "IN", pin: "560102" }],
-      ["Karthik Iyer", "karthik.i@example.com", "+971500000033", { line1: "Villa 9, Al Barsha 2", city: "Dubai", state: "Dubai", country: "AE", pin: "00000" }],
-      ["Suresh Iyer", "suresh.i@example.com", "+919800000044", { line1: "Plot 7, Jubilee Hills", city: "Hyderabad", state: "Telangana", country: "IN", pin: "500033" }]
-    ].map(([name, email, phone, address]) => newUser({ id: "demo-" + email.split("@")[0], name, email, phone, address, provider: "email", demo: true }));
-    write("users", users().concat(demoUsers));
-
-    const plan = [
-      // [user index, puja, mode, day offset, slot, pandit, extras]
-      [0, "thithi-shraddham", "online", -20, "19:00", "pd1", { prasadam: true, tz: "America/New_York", ship: "Delivered" }],
-      [1, "tharpanam", "online", -6, "17:30", "pd2", { prasadam: true, tz: "Europe/London", ship: "Shipped" }],
-      [2, "gruhapravesam", "home", -12, "07:00", "pd1", { samagri: true }],
-      [3, "ayushya-homam", "home", -3, "08:30", "pd3", { samagri: true }],
-      [4, "ganapathi-homam", "online", -2, "10:00", "pd7", { prasadam: true, tz: "Asia/Dubai", ship: "Packed" }],
-      [5, "satyanarayana-pooja", "home", 4, "17:30", "pd3", { samagri: true }],
-      [0, "tharpanam", "online", 6, "19:00", "pd1", { prasadam: false, tz: "America/New_York" }],
-      [1, "navagraha-homam", "online", 9, "16:00", "pd7", { prasadam: true, tz: "Europe/London" }],
-      [2, "lakshmi-pooja", "home", 11, "10:00", "pd2", { samagri: false }],
-      [3, "upanayanam", "home", 25, "07:00", "pd3", { samagri: true }],
-      [4, "sudarshana-homam", "online", 14, "11:30", "pd1", { prasadam: true, tz: "Asia/Dubai" }]
-    ];
-    const list = [];
-    plan.forEach(([ui, pid, mode, off, slot, pd, x], i) => {
-      const u = demoUsers[ui];
-      const date = istToday(off);
-      const co = country(u.address.country);
-      const q = quote({ pujaId: pid, mode, city: u.address.city, samagri: x.samagri, prasadam: x.prasadam, countryCode: co.code });
-      const id = "AP" + (1001 + i);
-      const past = off < 0;
-      const b = {
-        id, userId: u.id, customerName: u.name, phone: u.phone, email: u.email, mode, pujaId: pid, pujaName: puja(pid).name,
-        date, slot, tz: x.tz || "Asia/Kolkata", countryCode: co.code, nri: co.code !== "IN", city: u.address.city,
-        address: u.address, language: "Tamil", details: {}, instructions: "", samagri: !!x.samagri, prasadam: !!x.prasadam,
-        lines: q.lines, total: q.total,
-        payment: past
-          ? { method: co.code === "IN" ? "Cash after the puja" : "Bank transfer after the puja", txnId: "", status: "paid", paidAt: new Date(Date.now() + off * 86400000).toISOString(), currency: "INR" }
-          : { method: co.code === "IN" ? "Cash after the puja" : "Bank transfer after the puja", txnId: "", status: "due", paidAt: null, currency: "INR" },
-        status: past ? "completed" : i % 2 ? "pending" : "confirmed", panditId: pd,
-        meetingLink: mode === "online" && (past || i % 2 === 0) ? `https://meet.jit.si/AgniPuja-${id}-demo` : "",
-        shipping: mode === "online" && x.prasadam ? { status: x.ship || "Awaiting puja", carrier: x.ship && x.ship !== "Packed" ? "India Post EMS" : "", tracking: x.ship && x.ship !== "Packed" ? "EM" + (40000 + i) + "IN" : "", updatedAt: nowIso() } : null,
-        reschedules: 0, history: [{ at: nowIso(), text: "Booking request (sample data)" }], notifications: [], createdAt: new Date(Date.now() + (off - 5) * 86400000).toISOString(), demo: true
-      };
-      list.push(b);
-    });
-    write("bookings", bookings().concat(list));
-    write("seeded", 1);
+  /* ---------------- Remove old sample data ----------------
+     Earlier versions added sample customers and bookings on the first visit.
+     Clear them (once) from browsers that still have them. */
+  function removeSampleData() {
+    if (read("samplesRemoved", 0) >= 1) return;
+    const keepUsers = users().filter((u) => !u.demo);
+    const keepBookings = bookings().filter((b) => !b.demo);
+    write("users", keepUsers);
+    write("bookings", keepBookings);
+    const s = read("session", null);
+    if (s && !keepUsers.some((u) => u.id === s)) write("session", null);
+    write("samplesRemoved", 1);
   }
+  removeSampleData();
 
-  function resetDemo() {
-    ["users", "session", "bookings", "seq", "seeded", "pujaEdits", "pujaAdded", "cities", "pandits", "notifications"].forEach((k) => {
-      delete mem[NS + k];
-      try { localStorage.removeItem(NS + k); } catch (e) { /* ignore */ }
-    });
-    seed();
-  }
-
-  seed();
   // Let the homepage (js/main.js) show admin changes to the puja list.
   DATA.pujas = pujas();
 
@@ -533,13 +487,13 @@
     istToDate, istToday, addDays, hoursUntil, fmtTime, fmtDay, localDateKey, localHour, weekday,
     // catalogue
     pujas, puja, editPuja, addPuja, startingPrice, cities, saveCities, city, activeCities,
-    countries, country, pandits, savePandits, pandit,
+    countries, country, pandits, savePandits, pandit, servesCity,
     // accounts
     users, user, saveUser, currentUser, signIn, signOut, registerEmail, loginEmail, loginGoogle,
     sendOtp, verifyOtp, profileMissing, profileComplete, allAddresses, fmtAddress, normEmail, normPhone,
     // bookings
     bookings, booking, saveBookings, updateBooking, availability, nextOpenDates, quote, createBooking,
-    reschedule, cancel, refundFor, canReschedule, canCancel, notify, resetDemo,
+    reschedule, cancel, refundFor, canReschedule, canCancel, notify,
     confirmBooking, markPaid, isOpen, isPaid, sendToOwner, requestText, endpointReady
   };
 })();

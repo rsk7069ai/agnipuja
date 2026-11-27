@@ -9,12 +9,12 @@
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const SHIP = ["Awaiting puja", "Packed", "Shipped", "Delivered", "Cancelled"];
   const TABS = [
-    ["overview", "Reports", "chart"], ["bookings", "Bookings", "calendar"], ["pandits", "Pandits", "priest"],
+    ["requests", "Booking Requests", "mail"], ["overview", "Reports", "chart"], ["bookings", "Bookings", "calendar"], ["pandits", "Pandits", "priest"],
     ["cities", "Locations", "pin"], ["pujas", "Puja Services", "flame"], ["customers", "Customers", "users"],
     ["payments", "Payments", "card"], ["shipping", "Prasadam Shipping", "truck"], ["notify", "Notifications", "bell"],
     ["share", "Share Panchang", "whatsapp"]
   ];
-  const ui = { q: "", type: "all", status: "all" };
+  const ui = { q: "", type: "all", status: "all", sq: "", stype: "all" };
 
   /* ---------------- Password screen ----------------
      Only a SHA-256 hash of the password is stored here, never the password.
@@ -53,7 +53,7 @@
   }
 
   root.innerHTML = `<div class="dash"><nav class="dash-nav" id="adminNav" aria-label="Admin sections"></nav><div class="dash-main" id="adminMain"></div></div>`;
-  const tab = () => (TABS.some((t) => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : "overview");
+  const tab = () => (TABS.some((t) => t[0] === location.hash.slice(1)) ? location.hash.slice(1) : "requests");
   const sortAsc = (a, b) => A.istToDate(a.date, a.slot) - A.istToDate(b.date, b.slot);
   const isUpcoming = (b) => A.isOpen(b) && A.hoursUntil(b.date, b.slot) > -3;
   const net = (b) => b.total - (b.refund || 0);
@@ -67,13 +67,86 @@
   function nav() {
     const upcoming = A.bookings().filter(isUpcoming).length;
     const ship = A.bookings().filter((b) => b.shipping && ["Awaiting puja", "Packed"].includes(b.shipping.status) && b.status !== "cancelled").length;
-    const counts = { bookings: upcoming, shipping: ship };
+    const counts = { requests: sheet.rows ? sheet.rows.filter((r) => r.type === "New booking").length : 0, bookings: upcoming, shipping: ship };
     $("#adminNav").innerHTML = TABS.map(([k, l, ic]) => `<a href="#${k}" class="${k === tab() ? "active" : ""}">${icon(ic)} ${l}${counts[k] ? `<span class="count">${counts[k]}</span>` : ""}</a>`).join("") +
-      `<a href="#" data-act="reset" style="margin-top:8px">${icon("refresh")} Reset demo data</a><a href="#" data-act="exit">${icon("logout")} Log out of admin</a>`;
+      `<a href="#" data-act="exit" style="margin-top:8px">${icon("logout")} Log out of admin</a>`;
   }
+
+  /* ---------------- Booking requests from the Google Sheet ----------------
+     Every customer's request is saved in your Google Sheet by the Apps Script
+     (setup/booking-sheet.gs). This tab reads them back from there, so it shows
+     all customers' bookings on any device. Reading needs the secret ADMIN_KEY
+     set in the script's Script Properties; it is never stored in this code. */
+  const sheet = { rows: null, loading: false, error: "" };
+  const sheetKey = () => A.sRead("sheetKey", "") || A.read("sheetKey", "") || "";
+  function forgetKey() { A.sWrite("sheetKey", null); A.write("sheetKey", null); sheet.rows = null; sheet.error = ""; }
+  const SHEET_ERRORS = {
+    "bad-key": "That admin key is not correct.",
+    locked: "Too many wrong keys. Reading bookings is blocked for 15 minutes.",
+    "key-not-set": "The admin key is not set in Apps Script yet. Add ADMIN_KEY in Project Settings → Script Properties (see GOOGLE-SHEET-SETUP.md).",
+    old: "Your Apps Script is the old version. Paste the new setup/booking-sheet.gs into Apps Script and deploy a new version (see GOOGLE-SHEET-SETUP.md).",
+    network: "Could not reach the Google Sheet. Check your internet connection and try again."
+  };
+  function loadSheet() {
+    const key = sheetKey();
+    if (!key || sheet.loading || !A.endpointReady()) return;
+    sheet.loading = true; sheet.error = "";
+    fetch(A.DATA.site.bookingEndpoint.trim(), {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "list", key })
+    }).then((r) => r.json()).then((res) => {
+      if (res && res.ok && Array.isArray(res.rows)) { sheet.rows = res.rows; return; }
+      const err = (res && res.error) || "old";
+      sheet.error = SHEET_ERRORS[err] || SHEET_ERRORS.old;
+      if (err === "bad-key") { A.sWrite("sheetKey", null); A.write("sheetKey", null); }
+    }).catch(() => { sheet.error = SHEET_ERRORS.network; })
+      .finally(() => { sheet.loading = false; nav(); if (tab() === "requests") render(); });
+  }
+  const TYPE_BADGE = { "New booking": "badge-gold", "Time change": "badge-maroon", "Cancelled by customer": "badge-red" };
 
   /* ---------------- Views ---------------- */
   const V = {};
+
+  V.requests = () => {
+    const intro = head("Booking Requests", "Every request customers send from the website, read from your Google Sheet. Newest first.",
+      sheetKey() && sheet.rows ? `<button class="btn btn-soft" data-act="sheetReload">${icon("refresh")} Refresh</button>` : "");
+    if (!A.endpointReady()) return intro + `<p class="notice notice-warn">${icon("info")}<span>The Google Sheet is not connected yet. Add your Apps Script link as bookingEndpoint in js/pujas-data.js (see GOOGLE-SHEET-SETUP.md).</span></p>`;
+    if (!sheetKey()) return intro + `<form class="panel form" id="sheetKeyForm" novalidate style="max-width:520px">
+        <p class="panel-intro" style="margin-top:0">Enter the admin key you saved as <strong>ADMIN_KEY</strong> in Apps Script → Project Settings → Script Properties.</p>
+        ${sheet.error ? `<p class="form-error" role="alert">${esc(sheet.error)}</p>` : ""}
+        <label class="field">Admin key<input type="password" name="key" autocomplete="off" required></label>
+        <label class="check"><input type="checkbox" name="remember"> Remember on this device</label>
+        <button class="btn btn-primary" type="submit">${icon("lock")} Show bookings</button>
+      </form>`;
+    if (!sheet.rows) return intro + (sheet.error
+      ? `<p class="notice notice-warn">${icon("info")}<span>${esc(sheet.error)} <a class="link-btn" href="#" data-act="sheetReload">Try again</a> · <a class="link-btn" href="#" data-act="sheetForget">Enter a different key</a></span></p>`
+      : `<div class="empty"><p>Loading bookings from your Google Sheet…</p></div>`);
+    let list = sheet.rows;
+    if (ui.stype !== "all") list = list.filter((r) => r.type === ui.stype);
+    const q = ui.sq.toLowerCase();
+    if (q) list = list.filter((r) => [r.id, r.name, r.phone, r.email, r.puja, r.city, r.country].join(" ").toLowerCase().includes(q));
+    const rows = list.map((r) => {
+      const phone = String(r.phone || "").replace(/[^\d+]/g, "");
+      const wa = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Namaste ${r.name}, this is Agni Puja about your ${r.puja} request (${r.id}).`)}`;
+      return `<tr>
+        <td><strong>${esc(r.id || "—")}</strong><small>${esc(r.sentAt || "")}</small><span class="badge ${TYPE_BADGE[r.type] || ""}">${esc(r.type || "")}</span></td>
+        <td>${esc(r.name)}<small>${esc(r.phone)}${r.email ? "<br>" + esc(r.email) : ""}</small></td>
+        <td><strong>${esc(r.puja)}</strong><small>${esc(r.bookingType)}${r.city ? " · " + esc(r.city) : ""}${r.country && r.country !== "India" ? " · " + esc(r.country) : ""}</small>${r.address ? `<small>${esc(r.address)}</small>` : ""}${r.details ? `<small>${esc(r.details)}</small>` : ""}${r.instructions ? `<small>Note: ${esc(r.instructions)}</small>` : ""}</td>
+        <td>${esc(r.date)}<small>${esc(r.timeIST)} IST</small>${r.customerTime ? `<small>${esc(r.customerTime)}</small>` : ""}</td>
+        <td>${r.estimate ? money(Number(String(r.estimate).replace(/[^\d.]/g, "")) || 0) : "—"}<small>${esc(r.payment)}</small>${r.samagri ? `<small>Samagri: ${esc(r.samagri)}</small>` : ""}${r.prasadam ? `<small>Prasadam: ${esc(r.prasadam)}</small>` : ""}</td>
+        <td><div class="row-actions">
+          ${phone ? `<a class="icon-btn" title="Call" aria-label="Call ${esc(r.name)}" href="tel:${esc(phone)}">${icon("phone")}</a>
+          <a class="icon-btn" title="WhatsApp" aria-label="WhatsApp ${esc(r.name)}" target="_blank" rel="noopener" href="${esc(wa)}">${icon("whatsapp")}</a>` : ""}
+        </div></td></tr>`;
+    });
+    return intro + `<div class="toolbar">
+        <input class="input" type="search" placeholder="Search ID, name, phone, puja…" value="${esc(ui.sq)}" data-ui="sq" aria-label="Search requests">
+        <select class="input" data-ui="stype" aria-label="Request type">${[["all", "All requests"], ["New booking", "New bookings"], ["Time change", "Time changes"], ["Cancelled by customer", "Cancellations"]].map(([k, l]) => `<option value="${k}"${ui.stype === k ? " selected" : ""}>${l}</option>`).join("")}</select>
+        <span class="muted">${list.length} of ${sheet.rows.length}</span>
+        <a class="link-btn" href="#" data-act="sheetForget">Forget key</a>
+      </div>` + table(["Request", "Customer", "Puja", "Preferred time", "Estimate", "Contact"], rows, "No booking requests yet.");
+  };
 
   V.overview = () => {
     const all = A.bookings(), live = all.filter((b) => b.status !== "cancelled");
@@ -143,7 +216,7 @@
     return head("Bookings", "Call to confirm new requests, assign Pandits, share meeting links and record payments.") + `
       <p class="notice">${icon("info")}<span>${A.endpointReady()
         ? "New requests from customers also arrive in your Google Sheet and email."
-        : "Requests from customers' phones arrive by WhatsApp until the Google Sheet is connected (see GOOGLE-SHEET-SETUP.md)."} This panel shows bookings saved on this device.</span></p>
+        : "Requests from customers' phones arrive by WhatsApp until the Google Sheet is connected (see GOOGLE-SHEET-SETUP.md)."} This panel shows bookings saved on this device. <a class="link-btn" href="#requests">See all customers' requests</a></span></p>
       <div class="toolbar">
         <input class="input" type="search" placeholder="Search ID, name, puja, city…" value="${esc(ui.q)}" data-ui="q" aria-label="Search bookings">
         <select class="input" data-ui="type" aria-label="Booking type">${[["all", "All types"], ["online", "Online"], ["home", "At home"], ["nri", "NRI only"]].map(([k, l]) => `<option value="${k}"${ui.type === k ? " selected" : ""}>${l}</option>`).join("")}</select>
@@ -155,14 +228,15 @@
   V.pandits = () => {
     const list = A.pandits(), bk = A.bookings().filter(isUpcoming);
     return head("Pandits", "Pandit availability decides which time slots customers can book.", `<button class="btn btn-primary" data-act="addPandit">${icon("plus")} Add Pandit</button>`) +
-      table(["Pandit", "Serves", "Weekly days off", "Blocked dates", "Upcoming", "Active"], list.map((p) => `<tr>
+      table(["Pandit", "Serves", "Weekly days off", "Blocked dates", "Upcoming", "Active", ""], list.map((p) => `<tr>
         <td><strong>${esc(p.name)}</strong><small>${p.experience} yrs · ${esc(p.languages.join(", "))}</small></td>
-        <td>${p.modes.map(U.modeBadge).join(" ")}<small>${esc(p.cities.join(", ") || "Online only")}</small></td>
+        <td>${p.modes.map(U.modeBadge).join(" ")}<small>${p.cities === "all" ? "All cities" : esc(p.cities.join(", ") || "Online only")}</small></td>
         <td><div class="days">${DAYS.map((d, i) => `<label><input type="checkbox" data-act="off" data-id="${p.id}" data-day="${i}" ${(p.weeklyOff || []).includes(i) ? "checked" : ""}><span>${d}</span></label>`).join("")}</div></td>
         <td>${(p.blocked || []).map((d) => `<span class="badge badge-red" style="margin:0 4px 4px 0">${A.fmtDay(d)} <button class="link-btn" data-act="unblock" data-id="${p.id}" data-date="${d}" aria-label="Unblock ${d}">×</button></span>`).join("")}
           <input type="date" class="input" style="width:150px;margin-top:4px" min="${A.istToday()}" data-act="block" data-id="${p.id}" aria-label="Block a date"></td>
         <td>${bk.filter((b) => b.panditId === p.id).length}</td>
-        <td><label class="check"><input type="checkbox" data-act="active" data-id="${p.id}" ${p.active ? "checked" : ""}><span>${p.active ? "Active" : "Off"}</span></label></td></tr>`));
+        <td><label class="check"><input type="checkbox" data-act="active" data-id="${p.id}" ${p.active ? "checked" : ""}><span>${p.active ? "Active" : "Off"}</span></label></td>
+        <td><button class="icon-btn" title="Delete Pandit" data-act="delPandit" data-id="${p.id}" aria-label="Delete ${esc(p.name)}">${icon("trash")}</button></td></tr>`), "No Pandits yet. Add one so customers can book time slots.");
   };
 
   V.cities = () => {
@@ -171,7 +245,7 @@
       table(["City", "State", "Travel charge (₹)", "Pandits", "Serviceable", ""], A.cities().map((c, i) => `<tr>
         <td><strong>${esc(c.name)}</strong></td><td>${esc(c.state)}</td>
         <td><input class="input" type="number" min="0" step="50" style="width:110px" value="${c.travel}" data-act="travel" data-i="${i}" aria-label="Travel charge for ${esc(c.name)}"></td>
-        <td>${pd.filter((p) => p.active && p.cities.includes(c.name)).length}</td>
+        <td>${pd.filter((p) => p.active && A.servesCity(p, c.name)).length}</td>
         <td><label class="check"><input type="checkbox" data-act="cityActive" data-i="${i}" ${c.active ? "checked" : ""}><span>${c.active ? "Yes" : "Paused"}</span></label></td>
         <td><button class="icon-btn" data-act="delCity" data-i="${i}" aria-label="Remove ${esc(c.name)}">${icon("trash")}</button></td></tr>`)) +
       `<p class="hint" style="margin-top:12px">${icon("info")} A city needs at least one active Pandit serving it before customers can book home visits there.</p>`;
@@ -324,10 +398,9 @@
     const act = t.dataset.act, id = t.dataset.id;
     if (t.tagName === "SELECT" || t.tagName === "INPUT") return;
     e.preventDefault();
-    if (act === "exit") { A.sWrite("adminOk", null); location.href = "index.html"; }
-    else if (act === "reset") {
-      if (await U.confirmBox("Reset demo data?", "This deletes all accounts, bookings and admin changes saved in this browser and restores the sample data.", "Reset", true)) { A.resetDemo(); U.toast("Demo data reset."); render(); }
-    }
+    if (act === "exit") { A.sWrite("adminOk", null); A.sWrite("sheetKey", null); location.href = "index.html"; }
+    else if (act === "sheetReload") { sheet.rows = null; sheet.error = ""; render(); }
+    else if (act === "sheetForget") { forgetKey(); render(); }
     else if (act === "view") viewBooking(id);
     else if (act === "link") linkBox(id);
     else if (act === "remind") remind(id);
@@ -375,6 +448,19 @@
         if (b.shipping.status === "Shipped" && before !== "Shipped") A.notify(b, "shipped");
       });
       U.toast("Shipping updated."); render();
+    }
+    else if (act === "delPandit") {
+      const p = A.pandit(id);
+      if (!p) return;
+      const upcoming = A.bookings().filter((b) => isUpcoming(b) && b.panditId === id).length;
+      const last = A.pandits().length === 1;
+      const text = `${p.name} will be removed from the Pandits list.` +
+        (upcoming ? ` ${upcoming} upcoming booking${upcoming > 1 ? "s are" : " is"} assigned to this Pandit – assign another Pandit on the Bookings tab.` : "") +
+        (last ? " This is the last Pandit: no time slots can be booked until you add one." : "");
+      if (await U.confirmBox(`Delete ${p.name}?`, text, "Delete", true)) {
+        A.savePandits(A.pandits().filter((x) => x.id !== id));
+        U.toast(`${p.name} deleted.`); render();
+      }
     }
     else if (act === "addPandit") {
       formBox("Add a Pandit", `
@@ -477,8 +563,18 @@
   function render() {
     nav();
     $("#adminMain").innerHTML = V[tab()]();
+    if (tab() === "requests" && !sheet.rows && !sheet.error) loadSheet();
     if (tab() === "share" && window.AgniShare) window.AgniShare.mount($("#shareRoot"), A.istToday());
   }
+  document.addEventListener("submit", (e) => {
+    if (e.target.id !== "sheetKeyForm") return;
+    e.preventDefault();
+    const f = e.target, key = f.key.value.trim();
+    if (!key) { f.key.focus(); return; }
+    A.sWrite("sheetKey", key);
+    if (f.remember.checked) A.write("sheetKey", key);
+    sheet.error = ""; sheet.rows = null; render();
+  });
   window.addEventListener("hashchange", () => { ui.q = ""; render(); });
   render();
 })();

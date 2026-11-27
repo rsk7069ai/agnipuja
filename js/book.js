@@ -210,7 +210,7 @@
           ${cityKnownNotServed ? `<p class="notice notice-warn">${icon("info")}<span>We don't send Pandits to ${esc(prof.city)} yet. Choose a nearby city below${p.modes.includes("online") ? `, or <a class="link-btn" href="book.html?mode=online&puja=${esc(p.id)}">book this puja online</a>` : ""}.</span></p>` : ""}
           <label class="field">City <span class="req">*</span>
             <select name="city" required><option value="">Select your city</option>${A.activeCities().map((c) => `<option${c.name === S.city ? " selected" : ""}>${esc(c.name)}</option>`).join("")}</select></label>
-          ${S.city ? `<p class="hint">${icon("priest")} ${A.pandits().filter((x) => x.active && x.modes.includes("home") && x.cities.includes(S.city)).length} Pandits serve ${esc(S.city)}.${!U.showPrices ? "" : (A.city(S.city) || {}).travel ? ` Travel charge: ${money(A.city(S.city).travel)}.` : " No travel charge."}</p>` : ""}
+          ${S.city ? `<p class="hint">${icon("priest")} ${((n) => `${n} Pandit${n === 1 ? "" : "s"} serve${n === 1 ? "s" : ""}`)(A.pandits().filter((x) => x.active && x.modes.includes("home") && A.servesCity(x, S.city)).length)} ${esc(S.city)}.${!U.showPrices ? "" : (A.city(S.city) || {}).travel ? ` Travel charge: ${money(A.city(S.city).travel)}.` : " No travel charge."}</p>` : ""}
           ${p.samagri ? `<label class="check"><input type="checkbox" name="samagri" ${S.samagri ? "checked" : ""}><span><strong>Add puja samagri kit</strong> – ${U.showPrices ? money(p.samagri) + ". " : ""}Everything for the ritual is brought by the Pandit.</span></label>` : ""}
         </div>
       </fieldset>`}

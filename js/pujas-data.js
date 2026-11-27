@@ -27,7 +27,7 @@ window.AGNI_DATA = {
     phoneDisplay: "+91 98410 58644",
     phoneLink: "+919841058644",
     whatsapp: "919841058644", // country code + number, no "+" or spaces
-    email: "muralisastry2011@gmail.com",
+    email: "agnipujasupport@gmail.com",
     address: "Periyar Nagar, Chennai, Tamil Nadu",
     hours: "Every day, 6:00 AM – 9:00 PM",
     // Where booking requests are sent: paste your Google Apps Script web
@@ -297,33 +297,11 @@ window.AGNI_DATA = {
     { title: "Family Well-being", text: "Sudarshana and Navagraha Homam for peace and protection.", puja: "sudarshana-homam", icon: "family" }
   ],
 
-  /* ---------- Testimonials ---------- */
-  testimonials: [
-    {
-      name: "Lakshmi Narayanan",
-      place: "Chennai",
-      puja: "Gruhapravesam",
-      text: "The priests arrived on time with all the samagri and explained every step to us. Our Gruhapravesam was peaceful and exactly as our elders wanted."
-    },
-    {
-      name: "Priya Raghavan",
-      place: "Bengaluru",
-      puja: "Ayushya Homam",
-      text: "We booked the Ayushya Homam for our son's first birthday. Very smooth from enquiry to completion, and the mantras were chanted beautifully."
-    },
-    {
-      name: "Suresh Iyer",
-      place: "Hyderabad",
-      puja: "Ganapathi Homam",
-      text: "I enquired on WhatsApp in the morning and they had everything arranged for our office opening the same week. Highly recommended."
-    },
-    {
-      name: "Anand Krishnan",
-      place: "New Jersey, USA",
-      puja: "Thithi (Online)",
-      text: "Living in the US, I worried about doing my father's thithi properly. The Pandit did it live on video at a time that suited us, and the prasadam reached us in two weeks."
-    }
-  ],
+  /* ---------- Testimonials (real reviews only) ---------- */
+  // Add real customer reviews here (with their permission). The homepage
+  // section stays hidden while this list is empty. Example:
+  // { name: "Customer name", place: "Chennai", puja: "Ganapathi Homam", text: "Their words…" }
+  testimonials: [],
 
   /* ---------- Cities where Pandits visit homes ----------
      travel: travel charge added to at-home bookings in that city (₹) */
@@ -372,7 +350,7 @@ window.AGNI_DATA = {
     leadHours: { online: 12, home: 24 },
     // How far ahead customers can book (days)
     maxDaysAhead: 120,
-    languages: ["Tamil", "Telugu", "Kannada", "Malayalam", "Hindi", "Sanskrit only"],
+    languages: ["Tamil", "Telugu", "English", "Sanskrit only"],
     // Cancellation refund: hours before the puja → % refunded
     refundPolicy: [
       { hours: 48, percent: 100 },
@@ -381,16 +359,12 @@ window.AGNI_DATA = {
     rescheduleHours: 24 // reschedule allowed until this many hours before
   },
 
-  /* ---------- Pandits (sample) ----------
+  /* ---------- Pandits ----------
+     modes: "online" and/or "home"
+     cities: home-visit cities, or "all" for every city in the list above
      weeklyOff: days off (0 = Sunday … 6 = Saturday) */
   pandits: [
-    { id: "pd1", name: "Sri Venkatesa Sastrigal", experience: 24, languages: ["Tamil", "Sanskrit only"], modes: ["online", "home"], cities: ["Chennai", "Tiruchirappalli"], weeklyOff: [], blocked: [], active: true },
-    { id: "pd2", name: "Sri Ramakrishna Ghanapaadigal", experience: 31, languages: ["Tamil", "Telugu"], modes: ["online", "home"], cities: ["Chennai", "Coimbatore", "Madurai"], weeklyOff: [2], blocked: [], active: true },
-    { id: "pd3", name: "Sri Subrahmanya Sharma", experience: 18, languages: ["Kannada", "Telugu", "Hindi"], modes: ["online", "home"], cities: ["Bengaluru", "Hyderabad"], weeklyOff: [], blocked: [], active: true },
-    { id: "pd4", name: "Sri Narayana Namboothiri", experience: 20, languages: ["Malayalam", "Tamil"], modes: ["home"], cities: ["Kochi", "Coimbatore"], weeklyOff: [3], blocked: [], active: true },
-    { id: "pd5", name: "Sri Hariharan Vadhyar", experience: 15, languages: ["Tamil", "Hindi"], modes: ["online", "home"], cities: ["Mumbai", "Pune"], weeklyOff: [], blocked: [], active: true },
-    { id: "pd6", name: "Sri Shankar Dikshitar", experience: 27, languages: ["Tamil", "Sanskrit only", "Hindi"], modes: ["online", "home"], cities: ["Delhi NCR"], weeklyOff: [1], blocked: [], active: true },
-    { id: "pd7", name: "Sri Srinivasa Acharya", experience: 12, languages: ["Telugu", "Kannada"], modes: ["online"], cities: [], weeklyOff: [], blocked: [], active: true }
+    { id: "pd1", name: "Sri Murali Sastrigal", experience: "30+", languages: ["Tamil", "Telugu", "English", "Sanskrit"], modes: ["online", "home"], cities: "all", weeklyOff: [], blocked: [], active: true }
   ],
 
   /* ---------- Frequently asked questions ---------- */
