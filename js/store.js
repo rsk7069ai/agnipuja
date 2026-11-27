@@ -286,10 +286,20 @@
   const canCancel = (b) => isOpen(b) && hoursUntil(b.date, b.slot) > 0 && !!refundFor(b);
 
   /* ---------------- Bookings ---------------- */
+  /* Booking IDs are made on the customer's own device, so a simple counter
+     would give every customer the same numbers. Instead: AP + today's date
+     (IST, YYMMDD) + 5 random letters/digits, e.g. AP261127-K7Q2M. Look-alike
+     characters (0/O, 1/I/L) are left out so the ID is easy to read on a call. */
   function nextBookingId() {
-    const n = read("seq", 1040) + 1;
-    write("seq", n);
-    return "AP" + n;
+    const ABC = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+    const taken = new Set(bookings().map((b) => b.id));
+    let id;
+    do {
+      const r = new Uint32Array(5);
+      try { crypto.getRandomValues(r); } catch (e) { for (let i = 0; i < 5; i++) r[i] = Math.floor(Math.random() * 1e9); }
+      id = "AP" + istToday().slice(2).replace(/-/g, "") + "-" + Array.from(r, (x) => ABC[x % ABC.length]).join("");
+    } while (taken.has(id));
+    return id;
   }
   const meetingLinkFor = (id) => `https://meet.jit.si/AgniPuja-${id}-${Math.random().toString(36).slice(2, 8)}`;
 
