@@ -38,17 +38,19 @@ Then commit and push.
 
 Make a test booking on the website. Within a few seconds you should see a new row in the **Booking requests** tab and an email in your inbox. Turn on Gmail notifications on your phone so you hear about new bookings straight away.
 
-## 6. See all bookings in the admin page
+## 6. Admin password
 
-The admin page's **Booking Requests** tab reads the bookings from this sheet, so you can see every customer's request from any phone or computer. It's protected by a secret admin key that only you know.
+The admin page's password is stored **only in Apps Script**, never in the website code (which is public on GitHub). Google checks it every time you log in. The same password lets the admin page read every booking and set its status.
 
+**Set or change the password (any time):**
 1. In Apps Script, click **Project Settings** (gear icon on the left).
-2. Scroll to **Script Properties** → **Add script property**.
-3. Property: `ADMIN_KEY`. Value: a long secret that's hard to guess, for example 3–4 random words like `mango-river-lamp-1947`. Click **Save script properties**.
-4. If you changed the script code, deploy a new version (see *Changing the script later* below).
-5. Open the website's **Admin** page → **Booking Requests**, enter the key, and click **Show bookings**. Tick *Remember on this device* only on your own phone or computer.
+2. Scroll to **Script Properties**. Click **Edit script properties** (or **Add script property** the first time).
+3. Property: `ADMIN_KEY`. Value: your password — at least 8 characters, hard to guess, e.g. 3–4 random words like `mango-river-lamp-1947`.
+4. Click **Save script properties**. That's it — no redeploy needed. Anyone logged in with the old password is logged out the next time the page loads bookings.
 
-Never put the key in the code files or share it — anyone with the key and the web app link can read customer details. After 10 wrong keys, reading is blocked for 15 minutes. To change the key, edit `ADMIN_KEY` in Script Properties (no redeploy needed).
+**Log in:** open the website's **Admin** page and enter the password. Tick *Keep me logged in on this device* only on your own phone or computer.
+
+Keep the password private. After 10 wrong passwords, login is blocked for 15 minutes. If you forget it, open Script Properties to see or change it.
 
 ## 7. Customers track their booking
 

@@ -16,38 +16,54 @@
   ];
   const ui = { q: "", type: "all", status: "all", sq: "", stype: "all" };
 
-  /* ---------------- Password screen ----------------
-     Only a SHA-256 hash of the password is stored here, never the password.
-     This keeps casual visitors out; real security needs a server login
-     (see README → Going live). To change the password, replace ADMIN_HASH
-     with the SHA-256 of "agnipuja-admin:" + your new password. */
-  const ADMIN_HASH = "fbe59e719b20e721d236a0083b78d151750fd1cf6ddd6214835fbae7e45c177c";
-  async function sha256(text) {
-    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-  }
-  if (A.sRead("adminOk", "") !== ADMIN_HASH) {
+  /* ---------------- Admin login ----------------
+     The admin password is NOT in this code (the code is public on GitHub).
+     It is the ADMIN_KEY saved in Apps Script → Project Settings → Script
+     Properties, and Google checks it. Change it there whenever you like –
+     no code change or redeploy needed. */
+  const savedKey = () => A.sRead("sheetKey", "") || A.read("sheetKey", "") || "";
+  const LOGIN_ERRORS = {
+    "bad-key": "Incorrect password.",
+    locked: "Too many wrong passwords. Login is blocked for 15 minutes.",
+    "key-not-set": "The admin password is not set yet. In Apps Script → Project Settings → Script Properties, add ADMIN_KEY with your password (see GOOGLE-SHEET-SETUP.md).",
+    old: "Could not check the password. Make sure the latest setup/booking-sheet.gs is deployed in Apps Script.",
+    network: "Could not connect. Check your internet connection and try again."
+  };
+  if (!savedKey()) {
+    const msg = A.sRead("adminMsg", "");
+    A.sWrite("adminMsg", null);
     root.innerHTML = `<form class="panel admin-gate form" id="adminLogin" novalidate>
       <span class="feature-icon" style="margin:0 auto">${icon("lock")}</span>
       <h2>Admin login</h2>
       <p class="panel-intro" style="margin:0">Enter the admin password to manage bookings, Pandits and pujas.</p>
       <label class="field" style="text-align:left">Password<input type="password" name="pw" autocomplete="current-password" required></label>
-      <p class="form-error" role="alert" hidden></p>
+      <label class="check" style="text-align:left"><input type="checkbox" name="remember"> Keep me logged in on this device</label>
+      <p class="form-error" role="alert"${msg ? "" : " hidden"}>${esc(msg)}</p>
       <button class="btn btn-primary btn-lg" type="submit">Log in</button>
     </form>`;
-    const f = $("#adminLogin"), er = $(".form-error", f);
-    let fails = 0, lockedUntil = 0;
+    const f = $("#adminLogin"), er = $(".form-error", f), btn = $("button[type=submit]", f);
     f.pw.focus();
-    f.addEventListener("submit", async (e) => {
+    f.addEventListener("submit", (e) => {
       e.preventDefault();
-      if (Date.now() < lockedUntil) { er.textContent = `Too many attempts. Try again in ${Math.ceil((lockedUntil - Date.now()) / 1000)} seconds.`; er.hidden = false; return; }
-      let h = "";
-      try { h = await sha256("agnipuja-admin:" + f.pw.value); } catch (err) { er.textContent = "Please open the admin page over https (or localhost)."; er.hidden = false; return; }
-      if (h === ADMIN_HASH) { A.sWrite("adminOk", h); location.reload(); return; }
-      fails++;
-      if (fails >= 5) { lockedUntil = Date.now() + 30000; fails = 0; }
-      er.textContent = "Incorrect password."; er.hidden = false;
-      f.pw.value = ""; f.pw.focus();
+      const pw = f.pw.value;
+      if (!pw) { f.pw.focus(); return; }
+      if (!A.endpointReady()) { er.textContent = "The Google Sheet is not connected (bookingEndpoint in js/pujas-data.js)."; er.hidden = false; return; }
+      btn.disabled = true; btn.textContent = "Checking…"; er.hidden = true;
+      fetch(A.DATA.site.bookingEndpoint.trim(), {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "list", key: pw })
+      }).then((r) => r.json()).then((res) => {
+        if (res && res.ok) {
+          A.sWrite("sheetKey", pw);
+          if (f.remember.checked) A.write("sheetKey", pw);
+          location.reload();
+          return;
+        }
+        er.textContent = LOGIN_ERRORS[(res && res.error) || "old"] || LOGIN_ERRORS.old; er.hidden = false;
+        f.pw.value = ""; f.pw.focus();
+      }).catch(() => { er.textContent = LOGIN_ERRORS.network; er.hidden = false; })
+        .finally(() => { btn.disabled = false; btn.textContent = "Log in"; });
     });
     return;
   }
@@ -78,12 +94,12 @@
      all customers' bookings on any device. Reading needs the secret ADMIN_KEY
      set in the script's Script Properties; it is never stored in this code. */
   const sheet = { rows: null, loading: false, error: "" };
-  const sheetKey = () => A.sRead("sheetKey", "") || A.read("sheetKey", "") || "";
+  const sheetKey = savedKey;
   function forgetKey() { A.sWrite("sheetKey", null); A.write("sheetKey", null); sheet.rows = null; sheet.error = ""; }
   const SHEET_ERRORS = {
-    "bad-key": "That admin key is not correct.",
-    locked: "Too many wrong keys. Reading bookings is blocked for 15 minutes.",
-    "key-not-set": "The admin key is not set in Apps Script yet. Add ADMIN_KEY in Project Settings → Script Properties (see GOOGLE-SHEET-SETUP.md).",
+    "bad-key": "The admin password has changed. Please log in again.",
+    locked: "Too many wrong passwords. Reading bookings is blocked for 15 minutes.",
+    "key-not-set": "The admin password (ADMIN_KEY) is not set in Apps Script → Project Settings → Script Properties.",
     old: "Your Apps Script is the old version. Paste the new setup/booking-sheet.gs into Apps Script and deploy a new version (see GOOGLE-SHEET-SETUP.md).",
     network: "Could not reach the Google Sheet. Check your internet connection and try again."
   };
@@ -99,7 +115,7 @@
       if (res && res.ok && Array.isArray(res.rows)) { sheet.rows = res.rows; return; }
       const err = (res && res.error) || "old";
       sheet.error = SHEET_ERRORS[err] || SHEET_ERRORS.old;
-      if (err === "bad-key") { A.sWrite("sheetKey", null); A.write("sheetKey", null); }
+      if (err === "bad-key") { const m = sheet.error; forgetKey(); A.sWrite("adminMsg", m); location.reload(); }
     }).catch(() => { sheet.error = SHEET_ERRORS.network; })
       .finally(() => { sheet.loading = false; nav(); if (tab() === "requests") render(); });
   }
@@ -136,15 +152,8 @@
     const intro = head("Booking Requests", "Every request customers send from the website, read from your Google Sheet. Newest first.",
       sheetKey() && sheet.rows ? `<button class="btn btn-soft" data-act="sheetReload">${icon("refresh")} Refresh</button>` : "");
     if (!A.endpointReady()) return intro + `<p class="notice notice-warn">${icon("info")}<span>The Google Sheet is not connected yet. Add your Apps Script link as bookingEndpoint in js/pujas-data.js (see GOOGLE-SHEET-SETUP.md).</span></p>`;
-    if (!sheetKey()) return intro + `<form class="panel form" id="sheetKeyForm" novalidate style="max-width:520px">
-        <p class="panel-intro" style="margin-top:0">Enter the admin key you saved as <strong>ADMIN_KEY</strong> in Apps Script → Project Settings → Script Properties.</p>
-        ${sheet.error ? `<p class="form-error" role="alert">${esc(sheet.error)}</p>` : ""}
-        <label class="field">Admin key<input type="password" name="key" autocomplete="off" required></label>
-        <label class="check"><input type="checkbox" name="remember"> Remember on this device</label>
-        <button class="btn btn-primary" type="submit">${icon("lock")} Show bookings</button>
-      </form>`;
     if (!sheet.rows) return intro + (sheet.error
-      ? `<p class="notice notice-warn">${icon("info")}<span>${esc(sheet.error)} <a class="link-btn" href="#" data-act="sheetReload">Try again</a> · <a class="link-btn" href="#" data-act="sheetForget">Enter a different key</a></span></p>`
+      ? `<p class="notice notice-warn">${icon("info")}<span>${esc(sheet.error)} <a class="link-btn" href="#" data-act="sheetReload">Try again</a></span></p>`
       : `<div class="empty"><p>Loading bookings from your Google Sheet…</p></div>`);
     let list = sheet.rows;
     if (ui.stype !== "all") list = list.filter((r) => r.type === ui.stype);
@@ -169,7 +178,6 @@
         <input class="input" type="search" placeholder="Search ID, name, phone, puja…" value="${esc(ui.sq)}" data-ui="sq" aria-label="Search requests">
         <select class="input" data-ui="stype" aria-label="Request type">${[["all", "All requests"], ["New booking", "New bookings"], ["Time change", "Time changes"], ["Cancelled by customer", "Cancellations"]].map(([k, l]) => `<option value="${k}"${ui.stype === k ? " selected" : ""}>${l}</option>`).join("")}</select>
         <span class="muted">${list.length} of ${sheet.rows.length}</span>
-        <a class="link-btn" href="#" data-act="sheetForget">Forget key</a>
       </div>` + table(["Request", "Customer", "Puja", "Preferred time", "Estimate", "Contact"], rows, "No booking requests yet.");
   };
 
@@ -423,9 +431,8 @@
     const act = t.dataset.act, id = t.dataset.id;
     if (t.tagName === "SELECT" || t.tagName === "INPUT") return;
     e.preventDefault();
-    if (act === "exit") { A.sWrite("adminOk", null); A.sWrite("sheetKey", null); location.href = "index.html"; }
+    if (act === "exit") { forgetKey(); location.href = "index.html"; }
     else if (act === "sheetReload") { sheet.rows = null; sheet.error = ""; render(); }
-    else if (act === "sheetForget") { forgetKey(); render(); }
     else if (act === "view") viewBooking(id);
     else if (act === "link") linkBox(id);
     else if (act === "remind") remind(id);
@@ -592,15 +599,6 @@
     if (tab() === "requests" && !sheet.rows && !sheet.error) loadSheet();
     if (tab() === "share" && window.AgniShare) window.AgniShare.mount($("#shareRoot"), A.istToday());
   }
-  document.addEventListener("submit", (e) => {
-    if (e.target.id !== "sheetKeyForm") return;
-    e.preventDefault();
-    const f = e.target, key = f.key.value.trim();
-    if (!key) { f.key.focus(); return; }
-    A.sWrite("sheetKey", key);
-    if (f.remember.checked) A.write("sheetKey", key);
-    sheet.error = ""; sheet.rows = null; render();
-  });
   window.addEventListener("hashchange", () => { ui.q = ""; render(); });
   render();
 })();
