@@ -35,7 +35,7 @@ window.AGNI_DATA = {
     // are asked to send their request to you on WhatsApp.
     bookingEndpoint: "https://script.google.com/macros/s/AKfycbzP-iCFASCAFN81YVaA7jjVAPGoswoHLe7_9SqsOqrq19tz9EgMcn4gn96k_DqTevA/exec",
     // Your website address – printed on the shared panchang image and text
-    websiteUrl: "https://rsk7069ai.github.io/agnipuja/",
+    websiteUrl: "https://www.agnipuja.com/",
     // Location used for the homepage "Today's Panchang" (sunrise, Rahu Kalam…)
     panchangLocation: { name: "Chennai", lat: 13.0827, lon: 80.2707 },
     // Show prices to customers? false = prices are hidden on the website and
