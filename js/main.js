@@ -97,9 +97,20 @@
   /* ---------------- Render: testimonials ---------------- */
   function renderTestimonials() {
     const list = DATA.testimonials || [];
-    const section = document.getElementById("testimonials");
-    if (!list.length) { if (section) section.hidden = true; return; }
-    $("#testimonialGrid").innerHTML = list
+    const grid = $("#testimonialGrid");
+    const share = waLink("Namaste Agni Puja, I would like to share my experience of the puja:");
+    // Until real reviews are added in js/pujas-data.js, invite customers to share theirs.
+    if (!list.length) {
+      grid.classList.add("testimonial-invite");
+      grid.innerHTML = `<div class="card testimonial">
+        <div class="stars" aria-hidden="true">★★★★★</div>
+        <blockquote>Had a puja with us? We would be grateful to hear about your experience – your words help other families.</blockquote>
+        <a class="btn btn-primary" href="${share}" target="_blank" rel="noopener">${icon("whatsapp")} Share your experience</a>
+      </div>`;
+      return;
+    }
+    grid.insertAdjacentHTML("afterend", `<p style="text-align:center;margin-top:28px"><a class="btn btn-outline" href="${share}" target="_blank" rel="noopener">${icon("whatsapp")} Share your experience</a></p>`);
+    grid.innerHTML = list
       .map((t) => {
         const initials = t.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
         return `

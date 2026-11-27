@@ -583,3 +583,7 @@ h1, h2, h3, h4 { overflow-wrap: anywhere; }
 .share-side textarea { font-size: .85rem; line-height: 1.5; }
 @media (max-width: 920px) { .share-layout { grid-template-columns: 1fr; } .share-preview { max-width: 440px; margin: 0 auto; width: 100%; } }
 @media (max-width: 640px) { .share-actions { grid-template-columns: 1fr; } }
+
+/* Reviews: single invite card until real reviews are added */
+.testimonial-grid.testimonial-invite { grid-template-columns: 1fr; max-width: 560px; margin: 0 auto; text-align: center; }
+.testimonial-invite .btn { align-self: center; }
