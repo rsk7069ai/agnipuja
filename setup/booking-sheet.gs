@@ -38,6 +38,7 @@ function doPost(e) {
     const data = JSON.parse(e.postData.contents);
     if (data && data.action === "list") return reply(listBookings(data.key));
     if (data && data.action === "track") return reply(trackBooking(data.id, data.phone));
+    if (data && data.action === "status") return reply(setStatus(data.key, data.row, data.status));
     if (!data || !TYPES[data.type] || !data.name || !data.phone) return reply({ ok: false });
     const row = COLUMNS.map(([key]) => (key === "type" ? TYPES[data.type]
       : key === "status" ? (data.type === "cancel" ? STATUS.cancelled : STATUS.pending)
@@ -111,6 +112,34 @@ function trackBooking(id, phone) {
 
 // Returns every row of the sheet to the admin page, newest first.
 function listBookings(key) {
+  const bad = checkKey(key);
+  if (bad) return bad;
+  return { ok: true, rows: readRows().reverse() };
+}
+
+// Admin page: set the Status of a booking. It is written to every row of
+// that booking (same booking ID and phone), so time changes stay in step.
+const STATUS_CHOICES = [STATUS.pending, "Confirmed", "Completed", STATUS.cancelled];
+function setStatus(key, rowNo, status) {
+  const bad = checkKey(key);
+  if (bad) return bad;
+  if (STATUS_CHOICES.indexOf(status) < 0) return { ok: false, error: "bad-status" };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = getSheet();
+    const col = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0].indexOf("Status") + 1;
+    if (!col) return { ok: false, error: "no-status-column" };
+    const rows = readRows();
+    const target = rows.find((r) => r.row === Number(rowNo));
+    if (!target) return { ok: false, error: "not-found" };
+    const same = rows.filter((r) => String(r.id).trim() === String(target.id).trim() && digits(r.phone).slice(-10) === digits(target.phone).slice(-10));
+    same.forEach((r) => sheet.getRange(r.row, col).setValue(status));
+    return { ok: true, rows: same.map((r) => r.row), status };
+  } finally { lock.releaseLock(); }
+}
+
+function checkKey(key) {
   const cache = CacheService.getScriptCache();
   const fails = Number(cache.get("adminFails") || 0);
   if (fails >= MAX_FAILS) return { ok: false, error: "locked" };
@@ -121,7 +150,7 @@ function listBookings(key) {
     return { ok: false, error: "bad-key" };
   }
   cache.remove("adminFails");
-  return { ok: true, rows: readRows().reverse() };
+  return null;
 }
 
 function getSheet() {

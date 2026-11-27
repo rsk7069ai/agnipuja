@@ -104,6 +104,30 @@
       .finally(() => { sheet.loading = false; nav(); if (tab() === "requests") render(); });
   }
   const TYPE_BADGE = { "New booking": "badge-gold", "Time change": "badge-maroon", "Cancelled by customer": "badge-red" };
+  // Must match STATUS_CHOICES in setup/booking-sheet.gs. Customers see this on Track Booking.
+  const SHEET_STATUS = ["Pending – we will call you", "Confirmed", "Completed", "Cancelled"];
+  const digitsOf = (x) => String(x || "").replace(/\D/g, "").slice(-10);
+  function setSheetStatus(sel) {
+    const row = +sel.dataset.row, status = sel.value;
+    const r = (sheet.rows || []).find((x) => x.row === row);
+    const before = r ? r.status || "" : "";
+    sel.disabled = true;
+    fetch(A.DATA.site.bookingEndpoint.trim(), {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "status", key: sheetKey(), row, status })
+    }).then((res) => res.json()).then((res) => {
+      if (res && res.ok) {
+        (sheet.rows || []).filter((x) => r && x.id === r.id && digitsOf(x.phone) === digitsOf(r.phone)).forEach((x) => { x.status = status; });
+        U.toast(`${r ? r.id : "Booking"}: status set to ${status}. The customer sees it on Track Booking.`);
+        render();
+        return;
+      }
+      const err = res && res.error;
+      U.toast(err === "bad-key" || err === "locked" || err === "key-not-set" ? SHEET_ERRORS[err] : err === "not-found" ? "This row has moved in the sheet. Click Refresh and try again." : SHEET_ERRORS.old, "error", 8000);
+      sel.value = before; sel.disabled = false;
+    }).catch(() => { U.toast(SHEET_ERRORS.network, "error"); sel.value = before; sel.disabled = false; });
+  }
 
   /* ---------------- Views ---------------- */
   const V = {};
@@ -130,7 +154,8 @@
       const phone = String(r.phone || "").replace(/[^\d+]/g, "");
       const wa = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Namaste ${r.name}, this is Agni Puja about your ${r.puja} request (${r.id}).`)}`;
       return `<tr>
-        <td><strong>${esc(r.id || "—")}</strong><small>${esc(r.sentAt || "")}</small><span class="badge ${TYPE_BADGE[r.type] || ""}">${esc(r.type || "")}</span></td>
+        <td><strong>${esc(r.id || "—")}</strong><small>${esc(r.sentAt || "")}</small>
+          <select class="input" style="margin:6px 0;min-width:170px" data-act="sheetStatus" data-row="${r.row}" aria-label="Status for ${esc(r.id)}">${(SHEET_STATUS.includes(r.status) || !r.status ? SHEET_STATUS : [r.status].concat(SHEET_STATUS)).map((x) => `<option${x === (r.status || SHEET_STATUS[0]) ? " selected" : ""}>${esc(x)}</option>`).join("")}</select><span class="badge ${TYPE_BADGE[r.type] || ""}">${esc(r.type || "")}</span></td>
         <td>${esc(r.name)}<small>${esc(r.phone)}${r.email ? "<br>" + esc(r.email) : ""}</small></td>
         <td><strong>${esc(r.puja)}</strong><small>${esc(r.bookingType)}${r.city ? " · " + esc(r.city) : ""}${r.country && r.country !== "India" ? " · " + esc(r.country) : ""}</small>${r.address ? `<small>${esc(r.address)}</small>` : ""}${r.details ? `<small>${esc(r.details)}</small>` : ""}${r.instructions ? `<small>Note: ${esc(r.instructions)}</small>` : ""}</td>
         <td>${esc(r.date)}<small>${esc(r.timeIST)} IST</small>${r.customerTime ? `<small>${esc(r.customerTime)}</small>` : ""}</td>
@@ -214,9 +239,9 @@
         </div></td></tr>`;
     });
     return head("Bookings", "Call to confirm new requests, assign Pandits, share meeting links and record payments.") + `
-      <p class="notice">${icon("info")}<span>${A.endpointReady()
+      <p class="notice notice-warn">${icon("info")}<span>${A.endpointReady()
         ? "New requests from customers also arrive in your Google Sheet and email."
-        : "Requests from customers' phones arrive by WhatsApp until the Google Sheet is connected (see GOOGLE-SHEET-SETUP.md)."} This panel shows bookings saved on this device. <a class="link-btn" href="#requests">See all customers' requests</a></span></p>
+        : "Requests from customers' phones arrive by WhatsApp until the Google Sheet is connected (see GOOGLE-SHEET-SETUP.md)."} <strong>This tab only shows bookings made on this device, and changes here are not seen by customers.</strong> To confirm or complete a customer's booking, set its Status on the <a class="link-btn" href="#requests">Booking Requests</a> tab.</span></p>
       <div class="toolbar">
         <input class="input" type="search" placeholder="Search ID, name, puja, city…" value="${esc(ui.q)}" data-ui="q" aria-label="Search bookings">
         <select class="input" data-ui="type" aria-label="Booking type">${[["all", "All types"], ["online", "Online"], ["home", "At home"], ["nri", "NRI only"]].map(([k, l]) => `<option value="${k}"${ui.type === k ? " selected" : ""}>${l}</option>`).join("")}</select>
@@ -522,6 +547,7 @@
   document.addEventListener("change", (e) => {
     const t = e.target;
     if (!document.getElementById("adminRoot").contains(t)) return;
+    if (t.dataset.act === "sheetStatus") { setSheetStatus(t); return; }
     if (t.dataset.ui) { ui[t.dataset.ui] = t.value; render(); return; }
     const act = t.dataset.act, id = t.dataset.id;
     if (act === "assign") {
