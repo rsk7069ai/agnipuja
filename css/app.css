@@ -154,7 +154,8 @@ fieldset.group legend { font: 700 1.15rem var(--font-head); color: var(--maroon)
 .service-split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .service-card { display: flex; flex-direction: column; }
 .service-card:hover { transform: none; }
-.service-card .media { aspect-ratio: 16 / 8; }
+.service-card .media { aspect-ratio: 4 / 3; }
+.service-card .media.media-square { aspect-ratio: 1 / 1; } /* Online Puja photo: video call + kalasam */
 .service-card .card-body { padding: 28px 30px 30px; }
 .service-card h3 { font-size: 1.9rem; display: flex; align-items: center; gap: 12px; }
 .service-card h3 .feature-icon { width: 52px; height: 52px; margin: 0; }
