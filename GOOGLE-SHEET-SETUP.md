@@ -54,7 +54,7 @@ Keep the password private. After 10 wrong passwords, login is blocked for 15 min
 
 ## 7. Customers track their booking
 
-Customers don't log in. You share their **booking ID** with them (WhatsApp, SMS or email), and they check it on the website's **Track Booking** page with that ID and the phone number they booked with. You can also send a direct link: `https://rsk7069ai.github.io/agnipuja/track.html?id=AP261127-K7Q2M`.
+Customers don't log in. You share their **booking ID** with them (WhatsApp, SMS or email), and they check it on the website's **Track Booking** page with that ID and the phone number they booked with. You can also send a direct link: `https://www.agnipuja.com/track.html?id=AP261127-K7Q2M`.
 
 - **Set the status on the admin page:** Admin → **Booking Requests** → the Status menu under the booking ID (Pending, Confirmed, Completed, Cancelled). It's saved in the sheet's **Status** column and the customer sees it straight away. (The admin *Bookings* tab only holds bookings made on that device; customers don't see changes made there.)
 - You can also type the status in the sheet's Status column yourself. If the customer asked for a time change, update the newest row of that booking.
